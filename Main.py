@@ -4,8 +4,12 @@ from GameItems import *
 
 pygame.init()
 
-windowSize = (800, 600)
-screen = pygame.display.set_mode(windowSize)
+monitorSize = [pygame.display.Info().current_w, pygame.display.Info().current_h] #Get's the monitor size of the user's computer
+#For mine, Macbook Air 2015, it's 13.3-inch, 1440 x 900 pixel display (128 ppi) so it'll be [1440, 900]
+
+print(monitorSize)
+windowSize = (800, 600) #TODO: Make the default size relative to the screen size
+screen = pygame.display.set_mode(windowSize, pygame.RESIZABLE)
 pygame.display.set_caption("Pirate Game")
 clock = pygame.time.Clock()
 
@@ -67,7 +71,7 @@ def loadGame():
         }
     for rowNum, row in enumerate(gridString):
         grid.append([])
-        for colNum, element in enumerate(row):
+        for element in row:
             grid[rowNum].append(itemDict[element])
     
     mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror)
@@ -95,10 +99,12 @@ def titleScreen():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+                
+            #TODO: Make the screen resizable.
+            #if event.type == pygame.VIDEORESIZE:
+            #   screen = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
     
             if event.type == pygame.MOUSEBUTTONDOWN: #if mouse is clicked
-                
-                
                 if newGameButton.isMouseHover(mousePosition):
                     newGameButton.color = colours["blue"]
                     print("Clicked new game button")
@@ -161,11 +167,14 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror):
     
     mainScreen = screen.copy()
     
-    while True:
+    print(grid)
+    
+    while True: #TODO: While there are still squares to be picked
         for event in pygame.event.get():
             mousePosition = pygame.mouse.get_pos()
             
             if event.type == pygame.QUIT:
+                #TODO: Ask user if they would like to save game. Display two buttons - yes and no. If yes, call saveGame().
                 pygame.quit()
                 sys.exit()
         pygame.display.update()
