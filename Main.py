@@ -151,6 +151,11 @@ def titleScreen():
 def saveGame(grid, enteredCoordinates, cash, bankAmount, shield, mirror):
     pass
 
+#Converts from something like 4, 2 to D3
+def intCoordinateToStrCoordinate(rowCoordinate, colCoordinate):
+    rows = "ABCDEFG"
+    return rows[rowCoordinate] + str(colCoordinate+1)
+
 def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror):
     print("Main screen!")
     screen.fill(colours["sea"])
@@ -165,9 +170,25 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror):
     gridImageSize = gridImage.get_rect().size
     screen.blit(gridImage, (windowSize[0]//2 - gridImageSize[0]//2, windowSize[1]//2 - gridImageSize[1]//2))
     
+    cashButton = Button(colours["green"], 600, 20, 200, 30, text="Cash: %d" % cash)
+    cashButton.draw(screen)
+    
+    #TODO: Add the shield and mirror icons if they are initialised as True
+    shieldButton = Button(colours["green"], 600, 20, 200, 30)
+    
     mainScreen = screen.copy()
     
     print(grid)
+    
+    #Add the game item images to the grid
+    for rowCoordinate, row in enumerate(grid):
+        for colCoordinate, element in enumerate(row):
+            if intCoordinateToStrCoordinate(rowCoordinate, colCoordinate) not in enteredCoordinates:
+                filename = "Images/GameItems/" + element.itemName + ".png"
+                image = pygame.image.load(filename)
+                image = pygame.transform.scale(image, (48, 48))
+                screen.blit(image, (rowCoordinate * 53 + 245, colCoordinate * 58 + 130))
+                #TODO: Initialise the images
     
     while True: #TODO: While there are still squares to be picked
         for event in pygame.event.get():
