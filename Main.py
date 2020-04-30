@@ -170,11 +170,20 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror):
     gridImageSize = gridImage.get_rect().size
     screen.blit(gridImage, (windowSize[0]//2 - gridImageSize[0]//2, windowSize[1]//2 - gridImageSize[1]//2))
     
-    cashButton = Button(colours["green"], 600, 20, 200, 30, text="Cash: %d" % cash)
+    cashButton = Button(colours["green"], 620, 20, 180, 30, text="Cash: %d" % cash)
     cashButton.draw(screen)
     
+    if bankAmount != 0: #if bank is not 0, then this game is being continued and not a new game
+        bankButton = Button(colours["green"], 620, 60, 180, 30, text="Bank: %d" % bankAmount)
+        bankButton.draw(screen)
+    
     #TODO: Add the shield and mirror icons if they are initialised as True
-    shieldButton = Button(colours["green"], 600, 20, 200, 30)
+    shieldButton = Button(colours["green"], 620, 100, 80, 80, image="Images/GameItems/Shield.png")
+    if shield:
+        shieldButton.draw(screen)
+    mirrorButton = Button(colours["green"], 620, 190, 80, 80, image="Images/GameItems/Mirror.png")
+    if mirror:
+        mirrorButton.draw(screen)
     
     mainScreen = screen.copy()
     
@@ -187,8 +196,7 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror):
                 filename = "Images/GameItems/" + element.itemName + ".png"
                 image = pygame.image.load(filename)
                 image = pygame.transform.scale(image, (48, 48))
-                screen.blit(image, (rowCoordinate * 53 + 245, colCoordinate * 58 + 130))
-                #TODO: Initialise the images
+                screen.blit(image, (rowCoordinate * 53 + 245, colCoordinate * 58 + 130)) #TODO: Don't hard code the numbers
     
     while True: #TODO: While there are still squares to be picked
         for event in pygame.event.get():

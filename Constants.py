@@ -11,7 +11,7 @@ colours = {"white":WHITE, "black":BLACK, "blue":BLUE, "red":RED, "green":GREEN, 
 #myriadProFont = pygame.font.SysFont("Myriad Pro", 48)
 
 class Button():
-    def __init__(self, color, x, y, width, height, text='', textColour = BLACK):
+    def __init__(self, color, x, y, width, height, text='', textColour = BLACK, image = None):
         self.color = color
         self.x = x
         self.y = y
@@ -19,13 +19,19 @@ class Button():
         self.height = height
         self.text = text
         self.textColour = textColour
+        self.image = image
 
     def draw(self, screen, fontSize = 48, outline = None):
         #Call this method to draw the button on the screen
         if outline:
             pygame.draw.rect(screen, outline, (self.x-2, self.y-2, self.width+4, self.height+4), 0)
-
-        pygame.draw.rect(screen, self.color, (self.x, self.y, self.width, self.height), 0)
+        
+        if self.image != None: #We want an image button
+            img = pygame.image.load(self.image)
+            img = pygame.transform.scale(img, (self.width, self.height))
+            screen.blit(img, (self.x, self.y))
+        else:
+            pygame.draw.rect(screen, self.color, (self.x, self.y, self.width, self.height), 0)
         
         if self.text != '':
             myriadProFont = pygame.font.SysFont("Myriad Pro", fontSize)
