@@ -2,5 +2,5 @@
 false
 false
 0
-[A1, A3]
+[A1, A3, A4, B3, B6, B2]
 [[present, choose next square, $200, $1000, $1000, lost at sea, $5000], [$200, $3000, $200, swap score, $200, $1000, $200], [$200, $200, $200, $200, $3000, rob, $1000], [$200, mirror, $200, double score, $200, $200, $200], [$200, shield, $1000, $200, $200, $200, sink ship], [$200, $200, $200, $200, $1000, backstab, $200], [$1000, $1000, $200, sneak peek, $1000, bank, $1000]]
