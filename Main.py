@@ -6,29 +6,43 @@ pygame.init()
 
 monitorSize = [pygame.display.Info().current_w, pygame.display.Info().current_h] #Get's the monitor size of the user's computer
 #For mine, Macbook Air 2015, it's 13.3-inch, 1440 x 900 pixel display (128 ppi) so it'll be [1440, 900]
-
 print(monitorSize)
 windowSize = (800, 600) #TODO: Make the default size relative to the screen size
 screen = pygame.display.set_mode(windowSize, pygame.RESIZABLE)
 pygame.display.set_caption("Pirate Game")
 clock = pygame.time.Clock()
 
+def fade(width, height, alpha=95, colour="white"):
+    fade = pygame.Surface((width, height))
+    fade.fill(colours[colour])
+    fade.set_alpha(alpha)
+    screen.blit(fade, (0, 0))
+
 def pause(seconds = None):
     paused = True
     startTime = time.time()
+    currentScreen = screen.copy()
     
+    if seconds == None: #display "Paused" message indefinitely until the user presses c.
+        fade(windowSize[0], windowSize[1])
+        
+        myriadProFont = pygame.font.SysFont("Myriad Pro", 48)
+        pauseMessage = myriadProFont.render("Paused", 1, colours["black"], colours["white"])
+        messageSize = pauseMessage.get_size()
+        screen.blit(pauseMessage, (windowSize[0]//2 - messageSize[0]//2, windowSize[1]//2 - messageSize[1]//2))
+
     while paused:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_c: #if c pressed, Continue playing
+                if event.key == pygame.K_c: #if c pressed, continue playing
+                    screen.blit(currentScreen, (0, 0))
                     paused = False
                     
-        if seconds != None:
-            if time.time() - startTime > seconds:
-                paused = False
+        if seconds != None and time.time() - startTime > seconds:
+            paused = False
             
         pygame.display.update()
 
@@ -79,7 +93,7 @@ def loadGame():
 def titleScreen():
     screen.fill(colours["sea"])
     
-    waitingForUser = True
+    waitingForUser = True #TODO: Define the logic for this.
     
     newGameButton = Button(colours["red"], windowSize[0]//2 - 100, 300, 200, 30, text="New Game")
     continueGameButton = Button(colours["red"], windowSize[0]//2 - 150, 400, 300, 30, text="Continue Game")
@@ -114,7 +128,7 @@ def titleScreen():
                     
                     foundGame = checkFileExists("saved_game.txt")
                     if foundGame:
-                        loadGameMessage = myriadProFont.render("Loading", 1, colours["black"], colours["white"])
+                        loadGameMessage = myriadProFont.render("Loading...", 1, colours["black"], colours["white"])
                         loadGameSize = loadGameMessage.get_size()
                         screen.blit(loadGameMessage, (windowSize[0]//2 - loadGameSize[0]//2, windowSize[1]//2 - loadGameSize[1]//2))
                         pause(seconds=3) #show the message for 3 seconds
@@ -156,8 +170,8 @@ def intCoordinateToStrCoordinate(rowCoordinate, colCoordinate):
     rows = "ABCDEFG"
     return rows[rowCoordinate] + str(colCoordinate+1)
 
+#Triggered either by titleScreen -> loadGame or setUpScreen()
 def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror):
-    print("Main screen!")
     screen.fill(colours["sea"])
     
     whatHappenedButton = Button(colours["green"], windowSize[0]//2 - 150, 550, 300, 30, text="What Happened?")
@@ -173,21 +187,18 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror):
     cashButton = Button(colours["green"], 620, 20, 180, 30, text="Cash: %d" % cash)
     cashButton.draw(screen)
     
-    if bankAmount != 0: #if bank is not 0, then this game is being continued and not a new game
+    #if bank is not 0, then this game is being continued and not a new game
+    if bankAmount != 0: 
         bankButton = Button(colours["green"], 620, 60, 180, 30, text="Bank: %d" % bankAmount)
         bankButton.draw(screen)
     
-    #TODO: Add the shield and mirror icons if they are initialised as True
+    #Add the shield and mirror icons if they are initialised as True
     shieldButton = Button(colours["green"], 620, 100, 80, 80, image="Images/GameItems/Shield.png")
     if shield:
         shieldButton.draw(screen)
     mirrorButton = Button(colours["green"], 620, 190, 80, 80, image="Images/GameItems/Mirror.png")
     if mirror:
         mirrorButton.draw(screen)
-    
-    mainScreen = screen.copy()
-    
-    print(grid)
     
     #Add the game item images to the grid
     for rowCoordinate, row in enumerate(grid):
@@ -198,6 +209,9 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror):
                 image = pygame.transform.scale(image, (48, 48))
                 screen.blit(image, (rowCoordinate * 53 + 245, colCoordinate * 58 + 130)) #TODO: Don't hard code the numbers
     
+    mainScreen = screen.copy()
+    clickable = False #initially, the user may not enter a square
+    
     while True: #TODO: While there are still squares to be picked
         for event in pygame.event.get():
             mousePosition = pygame.mouse.get_pos()
@@ -206,6 +220,28 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror):
                 #TODO: Ask user if they would like to save game. Display two buttons - yes and no. If yes, call saveGame().
                 pygame.quit()
                 sys.exit()
+            
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    currentScreen = screen.copy()
+                    clickable = True #the user may now click on the grid to remove a square
+                    
+                    myriadProFont = pygame.font.SysFont("Myriad Pro", 48)
+                    messageToUser = myriadProFont.render("Click on the coordinate that the teacher called out", 1, colours["black"], colours["white"])
+                    messageSize = messageToUser.get_size()
+                    screen.blit(messageToUser, (windowSize[0]//2 - messageSize[0]//2, windowSize[1]//2 - messageSize[1]//2))
+                    pause(seconds=2)
+                    screen.blit(currentScreen, (0, 0))
+                    
+                if event.key == pygame.K_p:
+                    pause()
+            
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if clickable:
+                    #TODO: Game logic - ask the user what they entered.
+                    print("Placeholder - here the computer should check where the user clicked")
+                    #Fill the square with colours["sea"]
+                    clickable = False #The user entered a square now, so they are now not allowed to enter again.
         pygame.display.update()
 
 if __name__ == "__main__":
