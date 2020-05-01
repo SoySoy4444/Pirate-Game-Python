@@ -6,7 +6,7 @@ pygame.init()
 
 monitorSize = [pygame.display.Info().current_w, pygame.display.Info().current_h] #Get's the monitor size of the user's computer
 #For mine, Macbook Air 2015, it's 13.3-inch, 1440 x 900 pixel display (128 ppi) so it'll be [1440, 900]
-print(monitorSize)
+
 windowSize = (800, 600) #TODO: Make the default size relative to the screen size
 screen = pygame.display.set_mode(windowSize, pygame.RESIZABLE)
 pygame.display.set_caption("Pirate Game")
@@ -64,9 +64,10 @@ def loadGame():
     shield = bool(states[1])
     mirror = bool(states[2])
     bankAmount = int(states[3])
-    #enteredCoordinates = states[4].replace("[", "").replace("]", "").split(", ")     does the same as below, easier to read 
+    #enteredCoordinates = states[4].replace("[", "").replace("]", "").split(", ")     does the same as below, both work. 
     enteredCoordinates = states[4][1:len(states[4])-1].split(", ")
     
+    #convert from 1 huge 1D array called items to a 7 by 7 2D array of Strings called gridString
     items = states[5][:len(states[5])-2].replace("[", "").replace("]", "").replace(" ", "").split(",")
     gridString = []
     itemNumber = 0
@@ -83,11 +84,13 @@ def loadGame():
         "shield": Shield(), "sinkship": SinkShip(), "backstab": Backstab(), "sneakpeek": SneakPeak(),
         "bank": Bank(), "$200": Cash(200), "$1000": Cash(1000), "$3000": Cash(3000), "$5000": Cash(5000)
         }
+    
+    #turn the grid into a grid of game item objects instead of grid of strings
     for rowNum, row in enumerate(gridString):
         grid.append([])
         for element in row:
             grid[rowNum].append(itemDict[element])
-    
+            
     mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror)
 
 def titleScreen():
@@ -182,6 +185,7 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror):
     
     gridImage = pygame.image.load("Images/grid.png")
     gridImageSize = gridImage.get_rect().size
+    print(gridImageSize)
     screen.blit(gridImage, (windowSize[0]//2 - gridImageSize[0]//2, windowSize[1]//2 - gridImageSize[1]//2))
     
     cashButton = Button(colours["green"], 620, 20, 180, 30, text="Cash: %d" % cash)
@@ -207,12 +211,12 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror):
                 filename = "Images/GameItems/" + element.itemName + ".png"
                 image = pygame.image.load(filename)
                 image = pygame.transform.scale(image, (48, 48))
-                screen.blit(image, (rowCoordinate * 53 + 245, colCoordinate * 58 + 130)) #TODO: Don't hard code the numbers
+                screen.blit(image, (rowCoordinate * 57 + 234, colCoordinate * 57 + 135)) #TODO: Don't hard code the numbers
     
     mainScreen = screen.copy()
     clickable = False #initially, the user may not enter a square
     
-    while True: #TODO: While there are still squares to be picked
+    while len(enteredCoordinates) != 49:
         for event in pygame.event.get():
             mousePosition = pygame.mouse.get_pos()
             
@@ -225,24 +229,26 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror):
                 if event.key == pygame.K_SPACE:
                     currentScreen = screen.copy()
                     clickable = True #the user may now click on the grid to remove a square
-                    
+                     
                     myriadProFont = pygame.font.SysFont("Myriad Pro", 48)
                     messageToUser = myriadProFont.render("Click on the coordinate that the teacher called out", 1, colours["black"], colours["white"])
                     messageSize = messageToUser.get_size()
                     screen.blit(messageToUser, (windowSize[0]//2 - messageSize[0]//2, windowSize[1]//2 - messageSize[1]//2))
-                    pause(seconds=2)
+                    pause(seconds=1)
                     screen.blit(currentScreen, (0, 0))
                     
                 if event.key == pygame.K_p:
                     pause()
             
             if event.type == pygame.MOUSEBUTTONDOWN:
+                print(mousePosition)
                 if clickable:
                     #TODO: Game logic - don't hard code
 
                     #TODO: Check that the square clicked is not in enteredCoordinates
-                    xLeft, xRight = 244, 610
-                    yTop, yBottom = 126, 534
+                    xLeft, xRight = 228, 628
+                    yTop, yBottom = 129, 529
+                    squareSize = (xRight - xLeft) / 7#also equal to yBottom - yTop
                     #244, 126 - - - - - 610, 126
                     #    -    - - - - -     -
                     #    -    - - - - -     -
@@ -251,21 +257,42 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror):
                     #    -    - - - - -     -
                     #244, 534 - - - - - 610, 534
                     
+                    #if the user presses within the boundaries of the grid
                     if mousePosition[0] > xLeft and mousePosition[0] < xRight and mousePosition[1] > yTop and mousePosition[1] < yBottom:
-                        row = int( (mousePosition[0] - xLeft) // ((xRight - xLeft)/7) )
-                        col = int( (mousePosition[1] - yTop) // ((yBottom - yTop)/7) )
+                        row = int( (mousePosition[0] - xLeft) // ((xRight - xLeft)/7) ) #calculate the row number from 0 - 6
+                        col = int( (mousePosition[1] - yTop) // ((yBottom - yTop)/7) ) #calculate the col number from 0 - 6
                         
-                        if intCoordinateToStrCoordinate(row, col) not in enteredCoordinates:
-                            #TODO: Fill the square with colours["sea"]
-                            print("Valid")
+                        if intCoordinateToStrCoordinate(row, col) not in enteredCoordinates:                            
+                            #topLeft corner of the square has the least x and y value
+                            top = int(yTop + (col * squareSize))
+                            left = int(xLeft + (row * squareSize))
+                            region = pygame.Rect((left, top), (int(squareSize), int(squareSize))) #the square to cover with blue
+                            screen.fill(colours["sea"], rect=region)
+                            print(grid[row][col].itemDescription)
                             enteredCoordinates.append(intCoordinateToStrCoordinate(row, col))
-                        else:
-                            print("Please enter available square")
+                        else: #This square was already played.
+                            #Remind the user to click on an empty square
+                            currentScreen = screen.copy()
+                            myriadProFont = pygame.font.SysFont("Myriad Pro", 48)
+                            warningMessage = myriadProFont.render("Please enter available square", 1, colours["black"], colours["white"])
+                            messageSize = warningMessage.get_size()
+                            screen.blit(warningMessage, (windowSize[0]//2 - messageSize[0]//2, windowSize[1]//2 - messageSize[1]//2))
+                            pause(seconds=1)
+                            screen.blit(currentScreen, (0, 0))
                     else:
-                        print("Please click inside the grid")
+                        #Remind the user to click inside the grid only
+                        currentScreen = screen.copy()
+                        myriadProFont = pygame.font.SysFont("Myriad Pro", 48)
+                        warningMessage = myriadProFont.render("Please click inside the grid", 1, colours["black"], colours["white"])
+                        messageSize = warningMessage.get_size()
+                        screen.blit(warningMessage, (windowSize[0]//2 - messageSize[0]//2, windowSize[1]//2 - messageSize[1]//2))
+                        pause(seconds=1)
+                        screen.blit(currentScreen, (0, 0))
                     
                     clickable = False #The user entered a square now, so they are now not allowed to enter again.
         pygame.display.update()
-
+    
+    #TODO: Pass in the total score to game over screen
+    #gameOverScreen(cash+bankAmount)
 if __name__ == "__main__":
     titleScreen()
