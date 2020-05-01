@@ -1,4 +1,4 @@
-import pygame, sys, time, numpy
+import pygame, sys, time
 from Constants import Button, colours#, myriadProFont
 from GameItems import *
 
@@ -238,9 +238,32 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror):
             
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if clickable:
-                    #TODO: Game logic - ask the user what they entered.
-                    print("Placeholder - here the computer should check where the user clicked")
-                    #Fill the square with colours["sea"]
+                    #TODO: Game logic - don't hard code
+
+                    #TODO: Check that the square clicked is not in enteredCoordinates
+                    xLeft, xRight = 244, 610
+                    yTop, yBottom = 126, 534
+                    #244, 126 - - - - - 610, 126
+                    #    -    - - - - -     -
+                    #    -    - - - - -     -
+                    #    -    - - - - -     -
+                    #    -    - - - - -     -
+                    #    -    - - - - -     -
+                    #244, 534 - - - - - 610, 534
+                    
+                    if mousePosition[0] > xLeft and mousePosition[0] < xRight and mousePosition[1] > yTop and mousePosition[1] < yBottom:
+                        row = int( (mousePosition[0] - xLeft) // ((xRight - xLeft)/7) )
+                        col = int( (mousePosition[1] - yTop) // ((yBottom - yTop)/7) )
+                        
+                        if intCoordinateToStrCoordinate(row, col) not in enteredCoordinates:
+                            #TODO: Fill the square with colours["sea"]
+                            print("Valid")
+                            enteredCoordinates.append(intCoordinateToStrCoordinate(row, col))
+                        else:
+                            print("Please enter available square")
+                    else:
+                        print("Please click inside the grid")
+                    
                     clickable = False #The user entered a square now, so they are now not allowed to enter again.
         pygame.display.update()
 
