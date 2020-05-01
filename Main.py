@@ -61,8 +61,9 @@ def loadGame():
             states.append(line)
     
     cash = int(states[0])
-    shield = bool(states[1])
-    mirror = bool(states[2])
+    
+    shield = True if states[1] == "True" else False
+    mirror = True if states[2] == "True" else False
     bankAmount = int(states[3])
     #enteredCoordinates = states[4].replace("[", "").replace("]", "").split(", ")     does the same as below, both work. 
     enteredCoordinates = states[4][1:len(states[4])-1].split(", ")
@@ -91,6 +92,7 @@ def loadGame():
         for element in row:
             grid[rowNum].append(itemDict[element])
             
+    print("Shield is", shield, "Mirror is", mirror)
     mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror)
 
 def titleScreen():
@@ -173,8 +175,62 @@ def intCoordinateToStrCoordinate(rowCoordinate, colCoordinate):
     rows = "ABCDEFG"
     return rows[rowCoordinate] + str(colCoordinate+1)
 
+#item is a GameItem class
+def makeChanges(item, cash, bankAmount, shield, mirror):
+    itemName = item.itemName
+    print(itemName)
+    print(item.itemDescription)
+    
+    if itemName[0] == "$": #this means the item is either $5000, $3000, $1000 or $200
+        value = int(itemName[1:]) #the part after the $, so 5000, 3000, 1000 or 200
+        return cash+value, bankAmount, shield, mirror
+    elif itemName == "Rob":
+        #ask how much you robbed
+        #TODO: Rob
+        pass
+    elif itemName == "SwapScore":
+        #ask how much opponent had
+        #TODO: Swap score
+        pass
+    elif itemName == "Bank":
+        return 0, cash, shield, mirror
+    elif itemName == "Mirror":
+        return cash, bankAmount, shield, True
+    elif itemName == "Shield":
+        return cash, bankAmount, True, mirror
+    elif itemName == "LostAtSea":
+        #TODO: if user has shield == True or mirror == True, ask user if they would like to use it, 
+        return 0, bankAmount, shield, mirror
+    elif itemName == "DoubleScore":
+        return 2*cash, bankAmount, shield, mirror
+    
+    #default case - present (which does nothing), sneak peek (again, nothing), choose next square, sink ship, back stab (?)
+    return cash, bankAmount, shield, mirror
+
+def updateUI(cash, bankAmount, shield, mirror):
+    cashButton = Button(colours["green"], 620, 20, 180, 30, text="Cash: %d" % cash)
+    cashButton.draw(screen)
+    
+    #if bank is not 0, then this game is being continued and not a new game
+    if bankAmount != 0: 
+        bankButton = Button(colours["green"], 620, 60, 180, 30, text="Bank: %d" % bankAmount)
+        bankButton.draw(screen)
+
+    #Add the shield and mirror icons if they are initialised as True
+    shieldButton = Button(colours["green"], 620, 100, 80, 80, image="Images/GameItems/Shield.png")
+    if shield:
+        shieldButton.draw(screen)
+    mirrorButton = Button(colours["green"], 620, 190, 80, 80, image="Images/GameItems/Mirror.png")
+    if mirror:
+        print("Mirror is true")
+        mirrorButton.draw(screen)
+    return shieldButton, mirrorButton
+
 #Triggered either by titleScreen -> loadGame or setUpScreen()
 def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror):
+    #TODO: Is this necessary?
+    #global cash, bankAmount, shield, mirror
+    
     screen.fill(colours["sea"])
     
     whatHappenedButton = Button(colours["green"], windowSize[0]//2 - 150, 550, 300, 30, text="What Happened?")
@@ -188,21 +244,7 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror):
     print(gridImageSize)
     screen.blit(gridImage, (windowSize[0]//2 - gridImageSize[0]//2, windowSize[1]//2 - gridImageSize[1]//2))
     
-    cashButton = Button(colours["green"], 620, 20, 180, 30, text="Cash: %d" % cash)
-    cashButton.draw(screen)
-    
-    #if bank is not 0, then this game is being continued and not a new game
-    if bankAmount != 0: 
-        bankButton = Button(colours["green"], 620, 60, 180, 30, text="Bank: %d" % bankAmount)
-        bankButton.draw(screen)
-    
-    #Add the shield and mirror icons if they are initialised as True
-    shieldButton = Button(colours["green"], 620, 100, 80, 80, image="Images/GameItems/Shield.png")
-    if shield:
-        shieldButton.draw(screen)
-    mirrorButton = Button(colours["green"], 620, 190, 80, 80, image="Images/GameItems/Mirror.png")
-    if mirror:
-        mirrorButton.draw(screen)
+    shieldButton, mirrorButton = updateUI(cash, bankAmount, shield, mirror)
     
     #Add the game item images to the grid
     for rowCoordinate, row in enumerate(grid):
@@ -213,10 +255,11 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror):
                 image = pygame.transform.scale(image, (48, 48))
                 screen.blit(image, (rowCoordinate * 57 + 234, colCoordinate * 57 + 135)) #TODO: Don't hard code the numbers
     
-    mainScreen = screen.copy()
+    #mainScreen = screen.copy()
     clickable = False #initially, the user may not enter a square
     
     while len(enteredCoordinates) != 49:
+        
         for event in pygame.event.get():
             mousePosition = pygame.mouse.get_pos()
             
@@ -242,10 +285,18 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror):
             
             if event.type == pygame.MOUSEBUTTONDOWN:
                 print(mousePosition)
+                if shieldButton.isMouseHover(mousePosition):
+                    #TODO: Shield button
+                    print("Shield button pressed")
+                if mirrorButton.isMouseHover(mousePosition):
+                    #TODO: Mirror button
+                    print("Mirror button pressed")
+                
+                
+                #this entire if block is for entering coordinates onto the grid
                 if clickable:
                     #TODO: Game logic - don't hard code
 
-                    #TODO: Check that the square clicked is not in enteredCoordinates
                     xLeft, xRight = 228, 628
                     yTop, yBottom = 129, 529
                     squareSize = (xRight - xLeft) / 7#also equal to yBottom - yTop
@@ -268,7 +319,11 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror):
                             left = int(xLeft + (row * squareSize))
                             region = pygame.Rect((left, top), (int(squareSize), int(squareSize))) #the square to cover with blue
                             screen.fill(colours["sea"], rect=region)
-                            print(grid[row][col].itemDescription)
+                            
+                            cash, bankAmount, shield, mirror = makeChanges(grid[row][col], cash, bankAmount, shield, mirror) #if user lands on cash, increase cash, if user lands on double, double score, etc.
+                            shieldButton, mirrorButton = updateUI(cash, bankAmount, shield, mirror)
+                            
+                            print(cash, bankAmount, shield, mirror)
                             enteredCoordinates.append(intCoordinateToStrCoordinate(row, col))
                         else: #This square was already played.
                             #Remind the user to click on an empty square

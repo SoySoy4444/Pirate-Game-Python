@@ -1,10 +1,9 @@
-
 class Cash():
     def __init__(self, value):
         self.value = value
         self.itemDescription = "You got $" + str(self.value) + "!";
         self.itemName = "$" + str(self.value)
-
+    
 class Rob():
     def __init__(self):
         self.itemDescription = "You robbed someone!"
