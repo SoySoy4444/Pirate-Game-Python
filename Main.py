@@ -1,5 +1,5 @@
-import pygame, sys, time
-from Constants import Button, colours#, myriadProFont
+import pygame, sys, time, datetime
+from Constants import Button, colours, Image#, myriadProFont
 from GameItems import *
 
 pygame.init()
@@ -11,6 +11,15 @@ windowSize = (800, 600) #TODO: Make the default size relative to the screen size
 screen = pygame.display.set_mode(windowSize, pygame.RESIZABLE)
 pygame.display.set_caption("Pirate Game")
 clock = pygame.time.Clock()
+
+def log(listLines, filename, cash):
+    with open(filename, "a") as file:
+        now = datetime.datetime.now()
+        dateAndTime = now.strftime("%d/%m/%y %H:%M")
+        
+        #for each string in the list of strings given, log the current time, cash and the message 
+        for line in listLines:
+            file.write(dateAndTime + "\t" + str(cash) + "\t" + line + "\n")
 
 def fade(width, height, alpha=95, colour="white"):
     fade = pygame.Surface((width, height))
@@ -53,7 +62,7 @@ def checkFileExists(filename):
     except FileNotFoundError:
         return False
 
-def loadGame():
+def loadGame(): #Transition from continue game -> main screen
     states = []
     with open("saved_game.txt") as file:
         for line in file.readlines():
@@ -92,8 +101,7 @@ def loadGame():
         for element in row:
             grid[rowNum].append(itemDict[element])
             
-    print("Shield is", shield, "Mirror is", mirror)
-    mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror)
+    mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, False)
 
 def titleScreen():
     screen.fill(colours["sea"])
@@ -181,6 +189,8 @@ def makeChanges(item, cash, bankAmount, shield, mirror):
     print(itemName)
     print(item.itemDescription)
     
+    log([item.itemDescription], "currentGame.txt", cash)
+    
     if itemName[0] == "$": #this means the item is either $5000, $3000, $1000 or $200
         value = int(itemName[1:]) #the part after the $, so 5000, 3000, 1000 or 200
         return cash+value, bankAmount, shield, mirror
@@ -227,37 +237,42 @@ def updateUI(cash, bankAmount, shield, mirror):
     return shieldButton, mirrorButton
 
 #Triggered either by titleScreen -> loadGame or setUpScreen()
-def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror):
-    #TODO: Is this necessary?
-    #global cash, bankAmount, shield, mirror
+def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, newGame):        
     
-    screen.fill(colours["sea"])
+    if not newGame: #if continuing game, we need to setup
+        screen.fill(colours["sea"]) #background blue colour
+        
+        gridImage = Image("Images/grid.png", size=(460, 460))
+        gridImage.blit(screen, pos = (windowSize[0]//2 - gridImage.width//2, windowSize[1]//2 - gridImage.height//2))
     
+
+        xLeft, xRight = 228, 628
+        yTop, yBottom = 129, 529
+        squareSize = gridImage.width / 8 #the grid has 8 squares, so / 8 will produce the size of each grid.
+        
+        #Add the game item images to the grid ONLY NECESSARY IF playing via CONTINUE GAME and not setup
+        fill = 0.85 #the image will fill 85% of the square
+        inset = 1 + ((squareSize * (1-fill)/2))/2/100 #for a square size of 57 and fill of 85%, is 2.15625%%.
+        for rowCoordinate, row in enumerate(grid):
+            for colCoordinate, element in enumerate(row):
+                if intCoordinateToStrCoordinate(rowCoordinate, colCoordinate) not in enteredCoordinates:
+                    #TODO: Replace with the image class
+                    filename = "Images/GameItems/" + element.itemName + ".png"
+                    image = Image(filename, size=(int(squareSize * fill), int(squareSize * fill)))
+                    image.blit(screen, pos=(rowCoordinate * squareSize + (inset * xLeft), colCoordinate * squareSize + (inset * yTop)))
+        
+    # ---------------- Clickable Buttons With Text ---------------
     whatHappenedButton = Button(colours["green"], windowSize[0]//2 - 150, 550, 300, 30, text="What Happened?")
     whatHappenedButton.draw(screen)
     
     saveGameButton = Button(colours["green"], 20, 20, 200, 30, text="Save Game")
     saveGameButton.draw(screen)
-    
-    gridImage = pygame.image.load("Images/grid.png")
-    gridImageSize = gridImage.get_rect().size
-    print(gridImageSize)
-    screen.blit(gridImage, (windowSize[0]//2 - gridImageSize[0]//2, windowSize[1]//2 - gridImageSize[1]//2))
+    # ------------------------------------------------------------
     
     shieldButton, mirrorButton = updateUI(cash, bankAmount, shield, mirror)
     
-    #Add the game item images to the grid
-    for rowCoordinate, row in enumerate(grid):
-        for colCoordinate, element in enumerate(row):
-            if intCoordinateToStrCoordinate(rowCoordinate, colCoordinate) not in enteredCoordinates:
-                filename = "Images/GameItems/" + element.itemName + ".png"
-                image = pygame.image.load(filename)
-                image = pygame.transform.scale(image, (48, 48))
-                screen.blit(image, (rowCoordinate * 57 + 234, colCoordinate * 57 + 135)) #TODO: Don't hard code the numbers
-    
     #mainScreen = screen.copy()
     clickable = False #initially, the user may not enter a square
-    
     while len(enteredCoordinates) != 49:
         
         for event in pygame.event.get():
@@ -296,10 +311,6 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror):
                 #this entire if block is for entering coordinates onto the grid
                 if clickable:
                     #TODO: Game logic - don't hard code
-
-                    xLeft, xRight = 228, 628
-                    yTop, yBottom = 129, 529
-                    squareSize = (xRight - xLeft) / 7#also equal to yBottom - yTop
                     #244, 126 - - - - - 610, 126
                     #    -    - - - - -     -
                     #    -    - - - - -     -

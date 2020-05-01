@@ -1,0 +1,41 @@
+01/05/20 22:15	200	You got $1000!
+01/05/20 22:15	1200	You got $200!
+01/05/20 22:15	1400	You got a shield!
+01/05/20 22:15	1400	You back stabbed someone!
+01/05/20 22:15	1400	Your cash is safe in the bank!
+01/05/20 22:16	0	You got $1000!
+01/05/20 22:16	1000	You got $200!
+01/05/20 22:16	1200	You doubled your score!
+01/05/20 22:16	2400	You got $200!
+01/05/20 22:16	2600	You got $200!
+01/05/20 22:33	200	You got $200!
+01/05/20 22:33	400	You got $200!
+01/05/20 22:33	600	You got a mirror!
+01/05/20 22:33	600	You got $200!
+01/05/20 22:33	800	You got $200!
+01/05/20 22:33	1000	You got $200!
+01/05/20 22:33	1200	You got $200!
+01/05/20 22:33	1400	You got $1000!
+01/05/20 22:33	2400	You got a shield!
+01/05/20 22:33	2400	You got $200!
+01/05/20 22:33	2600	You got $1000!
+01/05/20 22:33	3600	You doubled your score!
+01/05/20 22:34	7200	Your cash is safe in the bank!
+01/05/20 22:47	200	You got a mirror!
+01/05/20 22:47	200	You got $200!
+01/05/20 22:47	400	You got $200!
+01/05/20 22:47	600	You got $200!
+01/05/20 22:47	800	You got $200!
+01/05/20 22:55	200	You got $200!
+01/05/20 22:55	400	You got $200!
+01/05/20 22:57	200	You got $200!
+01/05/20 23:33	200	You got $200!
+01/05/20 23:33	400	You got $200!
+01/05/20 23:33	600	You can choose the next square!
+01/05/20 23:33	600	You got a shield!
+01/05/20 23:33	600	Your cash is safe in the bank!
+01/05/20 23:33	0	You got $1000!
+01/05/20 23:33	1000	You got $200!
+01/05/20 23:33	1200	You got $1000!
+01/05/20 23:33	2200	You got $200!
+01/05/20 23:33	2400	You got $200!
