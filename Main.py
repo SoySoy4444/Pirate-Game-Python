@@ -248,10 +248,51 @@ def updateUI(cash, bankAmount, shield, mirror):
     shieldButton = Button(colours["green"], 620, 100, 80, 80, image="Images/GameItems/Shield.png")
     if shield:
         shieldButton.draw(screen)
+    else:
+        buttonRegion = pygame.Rect((620, 100), (int(80), int(80))) #TODO: remove hardcoding
+        screen.fill(colours["sea"], rect=buttonRegion)
+        
     mirrorButton = Button(colours["green"], 620, 190, 80, 80, image="Images/GameItems/Mirror.png")
     if mirror:
         mirrorButton.draw(screen)
+    else:
+        buttonRegion = pygame.Rect((620, 190), (int(80), int(80))) #TODO: remove hardcoding
+        screen.fill(colours["sea"], rect=buttonRegion)
     return shieldButton, mirrorButton
+
+def confirm(message):
+    currentScreen = screen.copy()
+    
+    screen.fill(colours["white"])
+    confirmMessage = Message(message, 24)
+    confirmMessage.blit(screen, (windowSize[0]//2 - confirmMessage.width//2, 200))
+    
+    yesButton = Button(colours["green"], 620, 20, 180, 30, text="Yes")
+    yesButton.draw(screen)
+    
+    noButton = Button(colours["red"], 400, 20, 180, 30, text="No")
+    noButton.draw(screen)
+    
+    waitingForReply = True
+    while waitingForReply:
+        clock.tick(5)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mousePosition = pygame.mouse.get_pos()
+                if yesButton.isMouseHover(mousePosition):
+                    waitingForReply = False
+                    screen.blit(currentScreen, (0, 0))
+                    return True
+                if noButton.isMouseHover(mousePosition):
+                    waitingForReply = False
+                    screen.blit(currentScreen, (0, 0))
+                    return False
+        pygame.display.update()
+    
 
 #Triggered either by titleScreen -> loadGame or setUpScreen()
 def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, newGame):        
@@ -293,23 +334,28 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, newGa
     #mainScreen = screen.copy()
     clickable = False #initially, the user may not enter a square
     while len(enteredCoordinates) != 49:
-        clock.tick(60)
+        clock.tick(30)
 
         for event in pygame.event.get():
             mousePosition = pygame.mouse.get_pos()
             
             if event.type == pygame.QUIT:
                 #TODO: Ask user if they would like to save game. Display two buttons - yes and no. If yes, call saveGame().
+                if confirm("Would you like to save your game?"):
+                    saveGame(grid, enteredCoordinates, cash, bankAmount, shield, mirror)
+                    confirmationMessage = Message("Your game was saved!", 24)
+                    confirmationMessage.blit(screen, (windowSize[0]//2 - confirmationMessage.width//2, 200))
+                    pause(seconds=2)
                 pygame.quit()
                 sys.exit()
             
             if event.type == pygame.KEYDOWN:
-                
+
                 if event.key == pygame.K_SPACE:
                     currentScreen = screen.copy()
                     clickable = True #the user may now click on the grid to remove a square
                      
-                    clickMessage = Message("Click on the coordinate that the teacher called out", 24)
+                    clickMessage = Message("Click on the coordinate that the teacher called out", 24) #TODO: Very annoying? Fix.
                     clickMessage.blit(screen, (windowSize[0]//2 - clickMessage.width//2, 200))
                     pause(seconds=1)
                     screen.blit(currentScreen, (0, 0))
@@ -319,12 +365,14 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, newGa
             
             if event.type == pygame.MOUSEBUTTONDOWN:
                 print(mousePosition)
-                if shieldButton.isMouseHover(mousePosition):
-                    #TODO: Shield button
-                    print("Shield button pressed")
-                if mirrorButton.isMouseHover(mousePosition):
-                    #TODO: Mirror button
-                    print("Mirror button pressed")
+                if shieldButton.isMouseHover(mousePosition) and shield == True:
+                    if confirm("Use shield?"):
+                        shield = False
+                        shieldButton, mirrorButton = updateUI(cash, bankAmount, shield, mirror)
+                if mirrorButton.isMouseHover(mousePosition) and mirror == True:
+                    if confirm("Use mirror?"):
+                        mirror = False
+                        shieldButton, mirrorButton = updateUI(cash, bankAmount, shield, mirror)
                 
                 if saveGameButton.isMouseHover(mousePosition):
                     saveGame(grid, enteredCoordinates, cash, bankAmount, shield, mirror)
