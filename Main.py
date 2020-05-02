@@ -76,11 +76,11 @@ def loadGame(): #Transition from continue game -> main screen
     shield = True if states[1] == "True" else False
     mirror = True if states[2] == "True" else False
     bankAmount = int(states[3])
-    #enteredCoordinates = states[4].replace("[", "").replace("]", "").split(", ")     does the same as below, both work. 
-    enteredCoordinates = states[4][1:len(states[4])-1].split(", ")
+    #enteredCoordinates = states[4].replace("[", "").replace("]", "").replace("'", "").split(", ")     does the same as below, both work. 
+    enteredCoordinates = states[4][1:len(states[4])-1].replace("'", "").split(", ")
     
     #convert from 1 huge 1D array called items to a 7 by 7 2D array of Strings called gridString
-    items = states[5][:len(states[5])-2].replace("[", "").replace("]", "").replace(" ", "").split(",")
+    items = states[5][:len(states[5])-2].replace("[", "").replace("]", "").replace(" ", "").replace("'", "").split(",")
     gridString = []
     itemNumber = 0
     for i in range(7):
@@ -91,10 +91,10 @@ def loadGame(): #Transition from continue game -> main screen
 
     grid = []
     itemDict = {
-        "present": Present(), "choosenextsquare": ChooseNextSquare(), "lostatsea": LostAtSea(),
-        "swapscore": SwapScore(), "rob": Rob(), "mirror": Mirror(), "doublescore": DoubleScore(),
-        "shield": Shield(), "sinkship": SinkShip(), "backstab": Backstab(), "sneakpeek": SneakPeak(),
-        "bank": Bank(), "$200": Cash(200), "$1000": Cash(1000), "$3000": Cash(3000), "$5000": Cash(5000)
+        "Present": Present(), "ChooseNextSquare": ChooseNextSquare(), "LostAtSea": LostAtSea(),
+        "SwapScore": SwapScore(), "Rob": Rob(), "Mirror": Mirror(), "DoubleScore": DoubleScore(),
+        "Shield": Shield(), "SinkShip": SinkShip(), "Backstab": Backstab(), "SneakPeek": SneakPeak(),
+        "Bank": Bank(), "$200": Cash(200), "$1000": Cash(1000), "$3000": Cash(3000), "$5000": Cash(5000)
         }
     
     #turn the grid into a grid of game item objects instead of grid of strings
@@ -176,9 +176,17 @@ def titleScreen():
                     newGameButton.color = colours["red"]
         pygame.display.update()
 
-#TODO: Open (or create if necessary) saved_game file and then just write. Don't append, write.
 def saveGame(grid, enteredCoordinates, cash, bankAmount, shield, mirror):
-    pass
+    with open("saved_game.txt", "w") as file:
+        file.write(str(cash) + "\n")
+        file.write(str(shield) + "\n")
+        file.write(str(mirror) + "\n")
+        file.write(str(bankAmount) + "\n")
+        file.write(str(enteredCoordinates) + "\n")
+
+        temp = [map(lambda item: item.itemName, row) for row in grid]
+        s = str(list(map(list, temp)))
+        file.write(s)
 
 #Converts from something like 4, 2 to D3
 def intCoordinateToStrCoordinate(rowCoordinate, colCoordinate):
@@ -322,6 +330,9 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, newGa
                     #TODO: Mirror button
                     print("Mirror button pressed")
                 
+                if saveGameButton.isMouseHover(mousePosition):
+                    saveGame(grid, enteredCoordinates, cash, bankAmount, shield, mirror)
+                    print("Game saved!")
                 
                 #this entire if block is for entering coordinates onto the grid
                 if clickable:
