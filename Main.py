@@ -1,5 +1,5 @@
 import pygame, sys, time, datetime
-from Constants import Button, colours, Image, UserInput #, myriadProFont
+from Constants import Button, colours, Image, UserInput, Message #, myriadProFont
 from GameItems import *
 
 pygame.init()
@@ -59,7 +59,7 @@ def pause(seconds = None):
 
 def checkFileExists(filename):
     try:
-        with open(filename) as file:
+        with open(filename):
             return True
     except FileNotFoundError:
         return False
@@ -82,12 +82,12 @@ def loadGame(): #Transition from continue game -> main screen
     #convert from 1 huge 1D array called items to a 7 by 7 2D array of Strings called gridString
     items = states[5][:len(states[5])-2].replace("[", "").replace("]", "").replace(" ", "").replace("'", "").split(",")
     gridString = []
-    itemNumber = 0
-    for i in range(7):
-        gridString.append([])
-        for j in range(7):
-            gridString[i].append(items[itemNumber])
-            itemNumber += 1
+    currentRow = -1
+    for i in range(49):
+        if i % 7 == 0: #every 7 elements, create a new row
+            gridString.append([])
+            currentRow += 1
+        gridString[currentRow].append(items[i]) #in the current row, add the current element
 
     grid = []
     itemDict = {
@@ -95,7 +95,7 @@ def loadGame(): #Transition from continue game -> main screen
         "SwapScore": SwapScore(), "Rob": Rob(), "Mirror": Mirror(), "DoubleScore": DoubleScore(),
         "Shield": Shield(), "SinkShip": SinkShip(), "Backstab": Backstab(), "SneakPeek": SneakPeak(),
         "Bank": Bank(), "$200": Cash(200), "$1000": Cash(1000), "$3000": Cash(3000), "$5000": Cash(5000)
-        }
+    }
     
     #turn the grid into a grid of game item objects instead of grid of strings
     for rowNum, row in enumerate(gridString):
@@ -118,6 +118,9 @@ def titleScreen():
     newGameButton.draw(screen)
     continueGameButton.draw(screen)
     howToPlayButton.draw(screen, fontSize=24)
+    
+    title = Message("The Pirate Game", 64)
+    title.blit(screen, (windowSize[0]//2 - title.width//2, 200) )
     
     titleScreen = screen.copy()
     

@@ -65,11 +65,17 @@ class Image():
         self.y = pos[1]
         screen.blit(self.image, (self.x, self.y))
 
-"""
+
 class Message():
-    def __init__(self, pause = None, fontSize, font = "MyriadProFont"):
-        pass
-"""
+    def __init__(self, text, fontSize, fontStyle = "arialunicodettf", textColour = colours["black"], backgroundColour = colours["white"]):        
+        font = pygame.font.SysFont(fontStyle, fontSize)
+        self.myText = font.render(text, 1, textColour, backgroundColour)
+        self.width, self.height = self.myText.get_size()[0], self.myText.get_size()[1]
+        
+    def blit(self, screen, pos):
+        self.x = pos[0]
+        self.y = pos[1]
+        screen.blit(self.myText, (self.x, self.y))
     
 class UserInput():
     def __init__(self, x, y, fontSize = 24, numeric = False, textColour = colours["black"], backgroundColour = colours["white"]):
