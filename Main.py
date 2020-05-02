@@ -1,5 +1,5 @@
 import pygame, sys, time, datetime
-from Constants import Button, colours, Image, UserInput, Message #, myriadProFont
+from Constants import Button, colours, Image, UserInput, Message
 from GameItems import *
 
 pygame.init()
@@ -33,12 +33,9 @@ def pause(seconds = None):
     currentScreen = screen.copy()
     
     if seconds == None: #display "Paused" message indefinitely until the user presses c.
-        fade(windowSize[0], windowSize[1])
-        
-        myriadProFont = pygame.font.SysFont("Myriad Pro", 48)
-        pauseMessage = myriadProFont.render("Paused", 1, colours["black"], colours["white"])
-        messageSize = pauseMessage.get_size()
-        screen.blit(pauseMessage, (windowSize[0]//2 - messageSize[0]//2, windowSize[1]//2 - messageSize[1]//2))
+        fade(windowSize[0], windowSize[1]) #make the screen look whitish
+        pauseMessage = Message("Paused", 48)
+        pauseMessage.blit(screen, (windowSize[0]//2 - pauseMessage.width//2, windowSize[1]//2 - pauseMessage.height//2))
 
     while paused:
         clock.tick(2)
@@ -120,7 +117,7 @@ def titleScreen():
     howToPlayButton.draw(screen, fontSize=24)
     
     title = Message("The Pirate Game", 64)
-    title.blit(screen, (windowSize[0]//2 - title.width//2, 200) )
+    title.blit(screen, (windowSize[0]//2 - title.width//2, 200))
     
     titleScreen = screen.copy()
     
@@ -141,21 +138,16 @@ def titleScreen():
                     newGameButton.color = colours["blue"]
                     print("Clicked new game button")
                     
-                if continueGameButton.isMouseHover(mousePosition):
-                    myriadProFont = pygame.font.SysFont("Myriad Pro", 48)
-                    
-                    foundGame = checkFileExists("saved_game.txt")
-                    if foundGame:
-                        loadGameMessage = myriadProFont.render("Loading...", 1, colours["black"], colours["white"])
-                        loadGameSize = loadGameMessage.get_size()
-                        screen.blit(loadGameMessage, (windowSize[0]//2 - loadGameSize[0]//2, windowSize[1]//2 - loadGameSize[1]//2))
+                if continueGameButton.isMouseHover(mousePosition):                    
+                    if checkFileExists("saved_game.txt"):
+                        loadingMessage = Message("Loading...", 48)
+                        loadingMessage.blit(screen, (windowSize[0]//2 - loadingMessage.width//2, windowSize[1]//2 - loadingMessage.height//2))
                         pause(seconds=3) #show the message for 3 seconds
                         waitingForUser = False
                         loadGame() #load the game
                     else:
-                        loadGameMessage = myriadProFont.render("Could not find a game!", 1, colours["black"], colours["white"])
-                        loadGameSize = loadGameMessage.get_size()
-                        screen.blit(loadGameMessage, (windowSize[0]//2 - loadGameSize[0]//2, windowSize[1]//2 - loadGameSize[1]//2))
+                        loadingMessage = Message("Could not find a game!", 48)
+                        loadingMessage.blit(screen, (windowSize[0]//2 - loadingMessage.width//2, windowSize[1]//2 - loadingMessage.height//2))
                         pause(seconds=3) #show the message for 3 seconds
                         screen.blit(titleScreen, (0, 0)) #hide the message
 
@@ -199,8 +191,12 @@ def intCoordinateToStrCoordinate(rowCoordinate, colCoordinate):
 #item is a GameItem class
 def makeChanges(item, cash, bankAmount, shield, mirror):
     itemName = item.itemName
-    print(itemName)
-    print(item.itemDescription)
+    
+    currentScreen = screen.copy()
+    itemMessage = Message(item.itemDescription, 24)
+    itemMessage.blit(screen, (windowSize[0]//2 - itemMessage.width//2, windowSize[1]//2 - itemMessage.height//2))
+    pause(seconds=1)
+    screen.blit(currentScreen, (0, 0))
     
     log([item.itemDescription], "currentGame.txt", cash)
     
@@ -254,7 +250,6 @@ def updateUI(cash, bankAmount, shield, mirror):
         shieldButton.draw(screen)
     mirrorButton = Button(colours["green"], 620, 190, 80, 80, image="Images/GameItems/Mirror.png")
     if mirror:
-        print("Mirror is true")
         mirrorButton.draw(screen)
     return shieldButton, mirrorButton
 
@@ -298,7 +293,7 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, newGa
     #mainScreen = screen.copy()
     clickable = False #initially, the user may not enter a square
     while len(enteredCoordinates) != 49:
-        clock.tick(30)
+        clock.tick(60)
 
         for event in pygame.event.get():
             mousePosition = pygame.mouse.get_pos()
@@ -314,10 +309,8 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, newGa
                     currentScreen = screen.copy()
                     clickable = True #the user may now click on the grid to remove a square
                      
-                    myriadProFont = pygame.font.SysFont("Myriad Pro", 48)
-                    messageToUser = myriadProFont.render("Click on the coordinate that the teacher called out", 1, colours["black"], colours["white"])
-                    messageSize = messageToUser.get_size()
-                    screen.blit(messageToUser, (windowSize[0]//2 - messageSize[0]//2, windowSize[1]//2 - messageSize[1]//2))
+                    clickMessage = Message("Click on the coordinate that the teacher called out", 24)
+                    clickMessage.blit(screen, (windowSize[0]//2 - clickMessage.width//2, 200))
                     pause(seconds=1)
                     screen.blit(currentScreen, (0, 0))
                     
@@ -368,19 +361,17 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, newGa
                         else: #This square was already played.
                             #Remind the user to click on an empty square
                             currentScreen = screen.copy()
-                            myriadProFont = pygame.font.SysFont("Myriad Pro", 48)
-                            warningMessage = myriadProFont.render("Please enter available square", 1, colours["black"], colours["white"])
-                            messageSize = warningMessage.get_size()
-                            screen.blit(warningMessage, (windowSize[0]//2 - messageSize[0]//2, windowSize[1]//2 - messageSize[1]//2))
+                            
+                            warningMessage = Message("Please enter available square", 24, textColour=colours["black"], backgroundColour=colours["red"])
+                            warningMessage.blit(screen, (windowSize[0]//2 - warningMessage.width//2, windowSize[1]//2 - warningMessage.height//2))
                             pause(seconds=1)
                             screen.blit(currentScreen, (0, 0))
                     else:
                         #Remind the user to click inside the grid only
                         currentScreen = screen.copy()
-                        myriadProFont = pygame.font.SysFont("Myriad Pro", 48)
-                        warningMessage = myriadProFont.render("Please click inside the grid", 1, colours["black"], colours["white"])
-                        messageSize = warningMessage.get_size()
-                        screen.blit(warningMessage, (windowSize[0]//2 - messageSize[0]//2, windowSize[1]//2 - messageSize[1]//2))
+                        
+                        warningMessage = Message("Please click inside the grid", 24, textColour=colours["black"], backgroundColour=colours["red"])
+                        warningMessage.blit(screen, (windowSize[0]//2 - warningMessage.width//2, windowSize[1]//2 - warningMessage.height//2))
                         pause(seconds=1)
                         screen.blit(currentScreen, (0, 0))
                     
