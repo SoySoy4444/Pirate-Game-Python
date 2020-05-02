@@ -1,5 +1,5 @@
 import pygame, sys, time, datetime
-from Constants import Button, colours, Image#, myriadProFont
+from Constants import Button, colours, Image, UserInput #, myriadProFont
 from GameItems import *
 
 pygame.init()
@@ -41,6 +41,8 @@ def pause(seconds = None):
         screen.blit(pauseMessage, (windowSize[0]//2 - messageSize[0]//2, windowSize[1]//2 - messageSize[1]//2))
 
     while paused:
+        clock.tick(2)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -196,12 +198,21 @@ def makeChanges(item, cash, bankAmount, shield, mirror):
         return cash+value, bankAmount, shield, mirror
     elif itemName == "Rob":
         #ask how much you robbed
-        #TODO: Rob
-        pass
+        screenBeforeUserInput = screen.copy()
+        newField = UserInput(300, 400, numeric=True) #x, y
+        amountRobbed = int(newField.takeUserInput(screen))
+        screen.blit(screenBeforeUserInput, (0, 0))
+        return cash+amountRobbed, bankAmount, shield, mirror
+        #TODO: Display message asking user to enter how much you robbed
+    
     elif itemName == "SwapScore":
-        #ask how much opponent had
-        #TODO: Swap score
-        pass
+        screenBeforeUserInput = screen.copy()
+        newField = UserInput(300, 400, numeric=True) #x, y
+        opponentCash = int(newField.takeUserInput(screen))
+        screen.blit(screenBeforeUserInput, (0, 0))
+        return opponentCash, bankAmount, shield, mirror
+        #TODO: Display message asking user to enter how much opponent had
+
     elif itemName == "Bank":
         return 0, cash, shield, mirror
     elif itemName == "Mirror":
@@ -238,7 +249,6 @@ def updateUI(cash, bankAmount, shield, mirror):
 
 #Triggered either by titleScreen -> loadGame or setUpScreen()
 def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, newGame):        
-    
     if not newGame: #if continuing game, we need to setup
         screen.fill(colours["sea"]) #background blue colour
         
@@ -267,6 +277,9 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, newGa
     
     saveGameButton = Button(colours["green"], 20, 20, 200, 30, text="Save Game")
     saveGameButton.draw(screen)
+    
+    #TODO: Display log button
+    #If clicked, showLog()
     # ------------------------------------------------------------
     
     shieldButton, mirrorButton = updateUI(cash, bankAmount, shield, mirror)
@@ -274,7 +287,8 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, newGa
     #mainScreen = screen.copy()
     clickable = False #initially, the user may not enter a square
     while len(enteredCoordinates) != 49:
-        
+        clock.tick(30)
+
         for event in pygame.event.get():
             mousePosition = pygame.mouse.get_pos()
             
@@ -284,6 +298,7 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, newGa
                 sys.exit()
             
             if event.type == pygame.KEYDOWN:
+                
                 if event.key == pygame.K_SPACE:
                     currentScreen = screen.copy()
                     clickable = True #the user may now click on the grid to remove a square

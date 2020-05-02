@@ -39,3 +39,57 @@
 01/05/20 23:33	1200	You got $1000!
 01/05/20 23:33	2200	You got $200!
 01/05/20 23:33	2400	You got $200!
+01/05/20 23:40	200	You swapped scores!
+01/05/20 23:40	200	You got $200!
+01/05/20 23:40	400	You got $200!
+01/05/20 23:40	600	You got a shield!
+01/05/20 23:40	600	You got $1000!
+01/05/20 23:40	1600	Your cash is safe in the bank!
+01/05/20 23:52	200	You got $200!
+01/05/20 23:52	400	You got $200!
+01/05/20 23:52	600	You got $200!
+01/05/20 23:52	800	You got $200!
+01/05/20 23:52	1000	You got a mirror!
+01/05/20 23:52	1000	You got $200!
+01/05/20 23:53	200	You got $200!
+01/05/20 23:53	400	You got $200!
+01/05/20 23:54	600	You got $200!
+01/05/20 23:54	800	You got $200!
+01/05/20 23:54	1000	You got $200!
+01/05/20 23:54	1200	You can choose the next square!
+01/05/20 23:54	1200	You got $200!
+01/05/20 23:54	1400	You got a shield!
+01/05/20 23:54	1400	You got $5000!
+01/05/20 23:54	6400	You doubled your score!
+01/05/20 23:54	12800	Your cash is safe in the bank!
+01/05/20 23:54	0	You got $1000!
+02/05/20 01:18	200	You got a shield!
+02/05/20 01:18	200	You got $200!
+02/05/20 01:18	400	You doubled your score!
+02/05/20 01:18	800	You got $200!
+02/05/20 01:18	1000	You got $5000!
+02/05/20 01:18	6000	You got $200!
+02/05/20 01:18	6200	You got $1000!
+02/05/20 01:18	7200	You got $1000!
+02/05/20 01:18	8200	Your cash is safe in the bank!
+02/05/20 01:18	0	You got $1000!
+02/05/20 01:19	1000	You got $200!
+02/05/20 01:19	1200	You got $1000!
+02/05/20 11:11	200	You got $200!
+02/05/20 11:30	200	You can choose the next square!
+02/05/20 11:30	200	You robbed someone!
+02/05/20 11:30	612	You got $200!
+02/05/20 11:32	200	You got $200!
+02/05/20 11:32	400	You got $200!
+02/05/20 11:32	600	You got $200!
+02/05/20 11:33	800	You got $200!
+02/05/20 11:33	1000	You got $200!
+02/05/20 11:33	1200	You got $200!
+02/05/20 11:33	1400	You got $200!
+02/05/20 11:33	1600	You robbed someone!
+02/05/20 11:33	42831	You swapped scores!
+02/05/20 11:33	911	You got $200!
+02/05/20 11:33	1111	You got $200!
+02/05/20 11:33	1311	You got $1000!
+02/05/20 11:33	2311	You got $1000!
+02/05/20 11:33	3311	You got a shield!
