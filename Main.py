@@ -203,21 +203,22 @@ def makeChanges(item, cash, bankAmount, shield, mirror):
         value = int(itemName[1:]) #the part after the $, so 5000, 3000, 1000 or 200
         return cash+value, bankAmount, shield, mirror
     elif itemName == "Rob":
-        #ask how much you robbed
         screenBeforeUserInput = screen.copy()
+        requestMessage = Message("Please type how much you robbed", 24)
+        requestMessage.blit(screen, ("horizontalCentre", 200), windowSize=windowSize)
         newField = UserInput(300, 400, numeric=True) #x, y
         amountRobbed = int(newField.takeUserInput(screen))
         screen.blit(screenBeforeUserInput, (0, 0))
         return cash+amountRobbed, bankAmount, shield, mirror
-        #TODO: Display message asking user to enter how much you robbed
     
     elif itemName == "SwapScore":
         screenBeforeUserInput = screen.copy()
+        requestMessage = Message("Please type your opponent's cash", 24)
+        requestMessage.blit(screen, ("horizontalCentre", 200), windowSize=windowSize)
         newField = UserInput(300, 400, numeric=True) #x, y
         opponentCash = int(newField.takeUserInput(screen))
         screen.blit(screenBeforeUserInput, (0, 0))
         return opponentCash, bankAmount, shield, mirror
-        #TODO: Display message asking user to enter how much opponent had
 
     elif itemName == "Bank":
         return 0, cash, shield, mirror
@@ -343,7 +344,6 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, newGa
             mousePosition = pygame.mouse.get_pos()
             
             if event.type == pygame.QUIT:
-                #TODO: Ask user if they would like to save game. Display two buttons - yes and no. If yes, call saveGame().
                 if not saved and confirm("Would you like to save your game?"):
                     saveGame(grid, enteredCoordinates, cash, bankAmount, shield, mirror)
                     confirmationMessage = Message("Your game was saved!", 24)
