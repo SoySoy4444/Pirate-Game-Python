@@ -10,18 +10,32 @@ SEA = (59, 111, 226)
 colours = {"white":WHITE, "black":BLACK, "blue":BLUE, "red":RED, "green":GREEN, "sea": SEA}
 
 class Button():
-    def __init__(self, color, x, y, width, height, text='', textColour = BLACK, image = None):
+    #width and height will only be passed in for buttons with no text (images and plain buttons)
+    #windowSize will only be passed in if width="horizontalCentre" or height="verticalCentre"
+    def __init__(self, color, x, y, text='', textColour = BLACK, image = None, fontSize=48, width=None, height=None, widthScale=1, windowSize=None):
         self.color = color
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
         self.text = text
         self.textColour = textColour
         self.image = image
+        self.fontSize = fontSize
+        
+        self.widthScale = widthScale
+        if self.text != '': #We want text displayed on our button
+            arialFont = pygame.font.SysFont("arialunicodettf", fontSize)
+            text = arialFont.render(self.text, 1, self.textColour)
+            self.width, self.height = arialFont.size(self.text)
+            self.width *= self.widthScale
+        else:
+            self.width, self.height = width, height
+        
+        #the location depends on the width and height and so must be set after the width/height
+        self.x = windowSize[0]//2 - self.width//2 if x == "horizontalCentre" else x
+        self.y = windowSize[1]//2 - self.height//2 if y == "verticalCentre" else y
 
-    def draw(self, screen, fontSize = 48, outline = None):
+
+    def draw(self, screen, outline = None):
         #Call this method to draw the button on the screen
+        
         if outline:
             pygame.draw.rect(screen, outline, (self.x-2, self.y-2, self.width+4, self.height+4), 0)
         
@@ -33,8 +47,8 @@ class Button():
             pygame.draw.rect(screen, self.color, (self.x, self.y, self.width, self.height), 0)
         
         if self.text != '': #We want text displayed on our button
-            myriadProFont = pygame.font.SysFont("Myriad Pro", fontSize)
-            text = myriadProFont.render(self.text, 1, self.textColour)
+            arialFont = pygame.font.SysFont("arialunicodettf", self.fontSize)
+            text = arialFont.render(self.text, 1, self.textColour)
             screen.blit(text, (self.x + (self.width/2 - text.get_width()/2), self.y + (self.height/2 - text.get_height()/2)))
 
     def isMouseHover(self, mousePos):
@@ -70,9 +84,9 @@ class Message():
         self.myText = font.render(text, 1, textColour, backgroundColour)
         self.width, self.height = self.myText.get_size()[0], self.myText.get_size()[1]
         
-    def blit(self, screen, pos):
-        self.x = pos[0]
-        self.y = pos[1]
+    def blit(self, screen, pos, windowSize=None):
+        self.x = windowSize[0]//2 - self.width//2 if pos[0] == "horizontalCentre" else pos[0]
+        self.y = windowSize[1]//2 - self.height//2 if pos[1] == "verticalCentre" else pos[1]
         screen.blit(self.myText, (self.x, self.y))
     
 class UserInput():

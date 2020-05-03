@@ -107,14 +107,14 @@ def titleScreen():
     
     waitingForUser = True #TODO: Define the logic for this.
     
-    newGameButton = Button(colours["red"], windowSize[0]//2 - 100, 300, 200, 30, text="New Game")
-    continueGameButton = Button(colours["red"], windowSize[0]//2 - 150, 400, 300, 30, text="Continue Game")
-    howToPlayButton = Button(colours["red"], 100, 0, 200, 24, text="How To Play")
-    backToTitleScreen = Button(colours["red"], 100, windowSize[1]-100, 200, 24, text="Back")
+    newGameButton = Button(colours["red"], windowSize[0]//2 - 100, 300, text="New Game")
+    continueGameButton = Button(colours["red"], windowSize[0]//2 - 150, 400, text="Continue Game")
+    howToPlayButton = Button(colours["red"], 100, 0, text="How To Play", fontSize=24)
+    backToTitleScreen = Button(colours["red"], 100, windowSize[1]-100, text="Back")
     
     newGameButton.draw(screen)
     continueGameButton.draw(screen)
-    howToPlayButton.draw(screen, fontSize=24)
+    howToPlayButton.draw(screen)
     
     title = Message("The Pirate Game", 64)
     title.blit(screen, (windowSize[0]//2 - title.width//2, 200))
@@ -141,13 +141,13 @@ def titleScreen():
                 if continueGameButton.isMouseHover(mousePosition):                    
                     if checkFileExists("saved_game.txt"):
                         loadingMessage = Message("Loading...", 48)
-                        loadingMessage.blit(screen, (windowSize[0]//2 - loadingMessage.width//2, windowSize[1]//2 - loadingMessage.height//2))
+                        loadingMessage.blit(screen, ("horizontalCentre", "verticalCentre"), windowSize=windowSize)
                         pause(seconds=3) #show the message for 3 seconds
                         waitingForUser = False
                         loadGame() #load the game
                     else:
                         loadingMessage = Message("Could not find a game!", 48)
-                        loadingMessage.blit(screen, (windowSize[0]//2 - loadingMessage.width//2, windowSize[1]//2 - loadingMessage.height//2))
+                        loadingMessage.blit(screen, ("horizontalCentre", "verticalCentre"), windowSize=windowSize)
                         pause(seconds=3) #show the message for 3 seconds
                         screen.blit(titleScreen, (0, 0)) #hide the message
 
@@ -166,7 +166,6 @@ def titleScreen():
             if event.type == pygame.MOUSEMOTION: #if mouse is moving
                 if newGameButton.isMouseHover(mousePosition):
                     newGameButton.color = colours["green"]
-                    print("Hovering over new game button")
                 else:
                     newGameButton.color = colours["red"]
         pygame.display.update()
@@ -236,27 +235,31 @@ def makeChanges(item, cash, bankAmount, shield, mirror):
     return cash, bankAmount, shield, mirror
 
 def updateUI(cash, bankAmount, shield, mirror):
-    cashButton = Button(colours["green"], 620, 20, 180, 30, text="Cash: %d" % cash)
+    #TODO: Not working ↓
+    region = pygame.Rect((620, 20), (300, 30)) #the square to cover with blue
+    screen.fill(colours["sea"], rect=region)
+    
+    cashButton = Button(colours["green"], 650, 20, text="Cash: %d" % cash, fontSize=24)
     cashButton.draw(screen)
     
     #if bank is not 0, then this game is being continued and not a new game
     if bankAmount != 0: 
-        bankButton = Button(colours["green"], 620, 60, 180, 30, text="Bank: %d" % bankAmount)
+        bankButton = Button(colours["green"], 650, 60, text="Bank: %d" % bankAmount, fontSize=24)
         bankButton.draw(screen)
 
     #Add the shield and mirror icons if they are initialised as True
-    shieldButton = Button(colours["green"], 620, 100, 80, 80, image="Images/GameItems/Shield.png")
+    shieldButton = Button(colours["green"], 650, 100, image="Images/GameItems/Shield.png", width=80, height=80)
     if shield:
         shieldButton.draw(screen)
     else:
-        buttonRegion = pygame.Rect((620, 100), (int(80), int(80))) #TODO: remove hardcoding
+        buttonRegion = pygame.Rect((650, 100), (int(80), int(80))) #TODO: remove hardcoding
         screen.fill(colours["sea"], rect=buttonRegion)
         
-    mirrorButton = Button(colours["green"], 620, 190, 80, 80, image="Images/GameItems/Mirror.png")
+    mirrorButton = Button(colours["green"], 650, 190, image="Images/GameItems/Mirror.png", width=80, height=80)
     if mirror:
         mirrorButton.draw(screen)
     else:
-        buttonRegion = pygame.Rect((620, 190), (int(80), int(80))) #TODO: remove hardcoding
+        buttonRegion = pygame.Rect((650, 190), (int(80), int(80))) #TODO: remove hardcoding
         screen.fill(colours["sea"], rect=buttonRegion)
     return shieldButton, mirrorButton
 
@@ -267,10 +270,10 @@ def confirm(message):
     confirmMessage = Message(message, 24)
     confirmMessage.blit(screen, (windowSize[0]//2 - confirmMessage.width//2, 200))
     
-    yesButton = Button(colours["green"], 620, 20, 180, 30, text="Yes")
+    yesButton = Button(colours["green"], 'horizontalCentre', 300, text="Yes", widthScale=2, windowSize=windowSize)
     yesButton.draw(screen)
     
-    noButton = Button(colours["red"], 400, 20, 180, 30, text="No")
+    noButton = Button(colours["red"], 'horizontalCentre', 400, text="No", widthScale=2, windowSize=windowSize)
     noButton.draw(screen)
     
     waitingForReply = True
@@ -313,16 +316,15 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, newGa
         for rowCoordinate, row in enumerate(grid):
             for colCoordinate, element in enumerate(row):
                 if intCoordinateToStrCoordinate(rowCoordinate, colCoordinate) not in enteredCoordinates:
-                    #TODO: Replace with the image class
                     filename = "Images/GameItems/" + element.itemName + ".png"
                     image = Image(filename, size=(int(squareSize * fill), int(squareSize * fill)))
                     image.blit(screen, pos=(rowCoordinate * squareSize + (inset * xLeft), colCoordinate * squareSize + (inset * yTop)))
         
     # ---------------- Clickable Buttons With Text ---------------
-    whatHappenedButton = Button(colours["green"], windowSize[0]//2 - 150, 550, 300, 30, text="What Happened?")
+    whatHappenedButton = Button(colours["green"], windowSize[0]//2 - 150, 550, text="What Happened?", fontSize=24)
     whatHappenedButton.draw(screen)
     
-    saveGameButton = Button(colours["green"], 20, 20, 200, 30, text="Save Game")
+    saveGameButton = Button(colours["green"], 20, 20, text="Save Game", fontSize=24)
     saveGameButton.draw(screen)
     
     #TODO: Display log button
@@ -344,7 +346,7 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, newGa
                 if confirm("Would you like to save your game?"):
                     saveGame(grid, enteredCoordinates, cash, bankAmount, shield, mirror)
                     confirmationMessage = Message("Your game was saved!", 24)
-                    confirmationMessage.blit(screen, (windowSize[0]//2 - confirmationMessage.width//2, 200))
+                    confirmationMessage.blit(screen, ("horizontalCentre", 200), windowSize=windowSize)
                     pause(seconds=2)
                 pygame.quit()
                 sys.exit()
@@ -356,7 +358,7 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, newGa
                     clickable = True #the user may now click on the grid to remove a square
                      
                     clickMessage = Message("Click on the coordinate that the teacher called out", 24) #TODO: Very annoying? Fix.
-                    clickMessage.blit(screen, (windowSize[0]//2 - clickMessage.width//2, 200))
+                    clickMessage.blit(screen, ("horizontalCentre", 200), windowSize=windowSize)
                     pause(seconds=1)
                     screen.blit(currentScreen, (0, 0))
                     
@@ -404,14 +406,13 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, newGa
                             cash, bankAmount, shield, mirror = makeChanges(grid[row][col], cash, bankAmount, shield, mirror) #if user lands on cash, increase cash, if user lands on double, double score, etc.
                             shieldButton, mirrorButton = updateUI(cash, bankAmount, shield, mirror)
                             
-                            print(cash, bankAmount, shield, mirror)
                             enteredCoordinates.append(intCoordinateToStrCoordinate(row, col))
                         else: #This square was already played.
                             #Remind the user to click on an empty square
                             currentScreen = screen.copy()
                             
                             warningMessage = Message("Please enter available square", 24, textColour=colours["black"], backgroundColour=colours["red"])
-                            warningMessage.blit(screen, (windowSize[0]//2 - warningMessage.width//2, windowSize[1]//2 - warningMessage.height//2))
+                            warningMessage.blit(screen, ("horizontalCentre", "verticalCentre"), windowSize=windowSize)
                             pause(seconds=1)
                             screen.blit(currentScreen, (0, 0))
                     else:
@@ -419,14 +420,24 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, newGa
                         currentScreen = screen.copy()
                         
                         warningMessage = Message("Please click inside the grid", 24, textColour=colours["black"], backgroundColour=colours["red"])
-                        warningMessage.blit(screen, (windowSize[0]//2 - warningMessage.width//2, windowSize[1]//2 - warningMessage.height//2))
+                        warningMessage.blit(screen, ("horizontalCentre", "verticalCentre"), windowSize=windowSize)
                         pause(seconds=1)
                         screen.blit(currentScreen, (0, 0))
                     
                     clickable = False #The user entered a square now, so they are now not allowed to enter again.
         pygame.display.update()
     
-    #TODO: Pass in the total score to game over screen
-    #gameOverScreen(cash+bankAmount)
+    gameOverScreen(cash+bankAmount)
+    
+def gameOverScreen(score):
+
+    with open("recent_scores.txt", "a+") as file:
+        #TODO: read in the last 5 lines
+        
+        today = datetime.date.today()
+        formattedDate = today.strftime("%d/%m/%y")
+        file.write(formattedDate + "\t" + str(score) + "\n")
+        
 if __name__ == "__main__":
     titleScreen()
+    #gameOverScreen(6000) 
