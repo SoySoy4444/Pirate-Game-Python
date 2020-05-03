@@ -236,7 +236,7 @@ def makeChanges(item, cash, bankAmount, shield, mirror):
 
 def updateUI(cash, bankAmount, shield, mirror):
     #TODO: Not working ↓
-    region = pygame.Rect((620, 20), (300, 30)) #the square to cover with blue
+    region = pygame.Rect((500, 20), (300, 30)) #the square to cover with blue
     screen.fill(colours["sea"], rect=region)
     
     cashButton = Button(colours["green"], 650, 20, text="Cash: %d" % cash, fontSize=24)
@@ -334,6 +334,7 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, newGa
     shieldButton, mirrorButton = updateUI(cash, bankAmount, shield, mirror)
     
     #mainScreen = screen.copy()
+    saved = False #initially, the game is unsaved
     clickable = False #initially, the user may not enter a square
     while len(enteredCoordinates) != 49:
         clock.tick(30)
@@ -343,7 +344,7 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, newGa
             
             if event.type == pygame.QUIT:
                 #TODO: Ask user if they would like to save game. Display two buttons - yes and no. If yes, call saveGame().
-                if confirm("Would you like to save your game?"):
+                if not saved and confirm("Would you like to save your game?"):
                     saveGame(grid, enteredCoordinates, cash, bankAmount, shield, mirror)
                     confirmationMessage = Message("Your game was saved!", 24)
                     confirmationMessage.blit(screen, ("horizontalCentre", 200), windowSize=windowSize)
@@ -371,14 +372,21 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, newGa
                     if confirm("Use shield?"):
                         shield = False
                         shieldButton, mirrorButton = updateUI(cash, bankAmount, shield, mirror)
+                        saved = False
                 if mirrorButton.isMouseHover(mousePosition) and mirror == True:
                     if confirm("Use mirror?"):
                         mirror = False
                         shieldButton, mirrorButton = updateUI(cash, bankAmount, shield, mirror)
+                        saved = False
                 
                 if saveGameButton.isMouseHover(mousePosition):
                     saveGame(grid, enteredCoordinates, cash, bankAmount, shield, mirror)
-                    print("Game saved!")
+                    screenBeforeSaving = screen.copy()
+                    confirmationMessage = Message("Your game was saved!", 24)
+                    confirmationMessage.blit(screen, ("horizontalCentre", 200), windowSize=windowSize)
+                    pause(seconds=2)
+                    screen.blit(screenBeforeSaving, (0, 0))
+                    saved = True
                 
                 #this entire if block is for entering coordinates onto the grid
                 if clickable:
@@ -407,6 +415,7 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, newGa
                             shieldButton, mirrorButton = updateUI(cash, bankAmount, shield, mirror)
                             
                             enteredCoordinates.append(intCoordinateToStrCoordinate(row, col))
+                            saved = False
                         else: #This square was already played.
                             #Remind the user to click on an empty square
                             currentScreen = screen.copy()
