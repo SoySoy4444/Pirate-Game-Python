@@ -1,5 +1,4 @@
 import pygame, sys
-from PIL import ImageFont
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -9,7 +8,6 @@ GREEN = (0, 255, 0)
 SEA = (59, 111, 226)
 
 colours = {"white":WHITE, "black":BLACK, "blue":BLUE, "red":RED, "green":GREEN, "sea": SEA}
-#myriadProFont = pygame.font.SysFont("Myriad Pro", 48)
 
 class Button():
     def __init__(self, color, x, y, width, height, text='', textColour = BLACK, image = None):
@@ -86,23 +84,23 @@ class UserInput():
         self.textColour = textColour
         self.backgroundColour = backgroundColour
     
-    def updateSearchBox(self, searchBoxWidth, searchBoxHeight, screen, textObj):
+    def updateSearchBox(self, searchBoxWidth, searchBoxHeight, screen, textObj, screenBeforeUserInput):
+        screen.blit(screenBeforeUserInput, (0, 0))
         pygame.draw.rect(screen, self.backgroundColour, [self.x, self.y, searchBoxWidth, searchBoxHeight])
         screen.blit(textObj, (self.x, self.y))
     
     def takeUserInput(self, screen):
-        arialFont = pygame.font.SysFont("arialunicodettf", self.fontSize)
-        font = ImageFont.truetype("Arial Unicode.ttf", self.fontSize)
+        screenBeforeUserInput = screen.copy()
         
-        typing = True
         text = ""
+        arialFont = pygame.font.SysFont("arialunicodettf", self.fontSize)
         textObj = arialFont.render(text, 1, self.textColour)
 
-        #initial empty text field area
-        searchBoxWidth = font.getsize("a")[0]
-        searchBoxHeight = font.getsize("A")[1]
-        self.updateSearchBox(searchBoxWidth, searchBoxHeight, screen, textObj)
+        #initial empty text field area        
+        searchBoxWidth, searchBoxHeight = arialFont.size(" ")
+        self.updateSearchBox(searchBoxWidth, searchBoxHeight, screen, textObj, screenBeforeUserInput)
         
+        typing = True
         while typing:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -112,21 +110,19 @@ class UserInput():
                 if event.type == pygame.KEYDOWN:
                     
                     if ( (event.unicode.isalpha() or event.key == pygame.K_SPACE) and not self.numeric) or event.unicode.isnumeric():
-                        text += event.unicode
+                        text += event.unicode #add the character
                         textObj = arialFont.render(text, 1, self.textColour)
                         
-                        searchBoxWidth += font.getsize(event.unicode)[0]                        
-                        self.updateSearchBox(searchBoxWidth, searchBoxHeight, screen, textObj)
+                        searchBoxWidth, searchBoxHeight = arialFont.size(text)               
+                        self.updateSearchBox(searchBoxWidth, searchBoxHeight, screen, textObj, screenBeforeUserInput)
 
                     elif event.key == pygame.K_BACKSPACE and len(text) != 0: #you can only delete if there is text to delete
-                        deletedLetter  = text[-1]
-                        text = text[:-1]
+                        text = text[:-1] #delete the last character
                         textObj = arialFont.render(text, 1, self.textColour)
                         
-                        searchBoxWidth -= font.getsize(deletedLetter)[0]
-                        self.updateSearchBox(searchBoxWidth, searchBoxHeight, screen, textObj)
+                        searchBoxWidth, searchBoxHeight = arialFont.size(text)
+                        self.updateSearchBox(searchBoxWidth, searchBoxHeight, screen, textObj, screenBeforeUserInput)
                     elif event.key == pygame.K_RETURN:
                         typing = False
             pygame.display.update()
         return text
-        
