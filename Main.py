@@ -35,7 +35,7 @@ def pause(seconds = None):
     if seconds == None: #display "Paused" message indefinitely until the user presses c.
         fade(windowSize[0], windowSize[1]) #make the screen look whitish
         pauseMessage = Message("Paused", 48)
-        pauseMessage.blit(screen, (windowSize[0]//2 - pauseMessage.width//2, windowSize[1]//2 - pauseMessage.height//2))
+        pauseMessage.blit(screen, ("horizontalCentre", "verticalCentre"), windowSize=windowSize)
 
     while paused:
         clock.tick(2)
@@ -109,7 +109,7 @@ def titleScreen():
                     print("Clicked new game button")
                     
                 if continueGameButton.isMouseHover(mousePosition):                    
-                    if checkFileExists("saved_game.txt"):
+                    if checkFileExists("savedGame.pickle"):
                         loadingMessage = Message("Loading...", 48)
                         loadingMessage.blit(screen, ("horizontalCentre", "verticalCentre"), windowSize=windowSize)
                         pause(seconds=3) #show the message for 3 seconds
@@ -308,7 +308,7 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, newGa
     saved = False #initially, the game is unsaved
     clickable = False #initially, the user may not enter a square
     undoAllowed = False
-    while len(enteredCoordinates) != 49:
+    while len(enteredCoordinates) < 49:
         clock.tick(30)
 
         for event in pygame.event.get():
@@ -427,9 +427,12 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, newGa
     gameOverScreen(cash+bankAmount)
     
 def gameOverScreen(todaysScore):
+    screen.fill(colours["white"])
+    
     today = datetime.date.today()
     formattedDate = today.strftime("%d-%m-%y")
 
+    message = "Great Effort!"
     if os.path.exists("highScores.pickle"):
         with open("highScores.pickle", "rb") as f:
             highScoresDict = pickle.load(f)
@@ -447,28 +450,43 @@ def gameOverScreen(todaysScore):
                 newHighScoresDict = {score:highScoresDict[score] for score in newHighScores[:5]}
                 
                 if oldHighScores[len(oldHighScores)-1] > todaysScore:
-                    print("Your score does not belong in your high scores list :(")
+                    message = "Your score does not belong in your high scores list :("
 
             if newHighScores[0] == todaysScore:
-                print("You have a new high score!")
+                message = "You have a new high score!"
     else:
-        print("This is your first recorded high score!")
+        message = "This is your first recorded high score!"
         newHighScoresDict = {todaysScore:formattedDate}
     
+    gameOverMessage = Message(message, 24)
+    gameOverMessage.blit(screen, ("horizontalCentre", 100), windowSize=windowSize)
+    index = 1
     for score, date in newHighScoresDict.items():
-        print(score, date)
+        entry = date + " " + str(score)
+        entryMessage = Message(entry, 24)
+        entryMessage.blit(screen, ("horizontalCentre", 200+50*index), windowSize=windowSize)
+        index += 1
     
     #update the high scores dictionary
     with open("highScores.pickle", "wb") as f:
         pickle.dump(newHighScoresDict, f)
 
-    if os.path.exists("saved_game.txt"): #will not exist if first time playing
-        #os.remove("saved_game.txt")
+    if os.path.exists("savedGame.pickle"): #will not exist if first time playing
+        #os.remove("savedGame.pickle")
         pass
     if os.path.exists("currentGame.txt"): #this one should definitely exist, but just in case the user deleted it manually
-        #os.rename("currentGame.txt", "archive_" + formattedDate + ".txt")
-        pass
+        os.rename("currentGame.txt", "archive_" + formattedDate + ".txt")
     
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                goodbyeMessage = Message("Thank you for playing!", 24)
+                goodbyeMessage.blit(screen, ("horizontalCentre", 200), windowSize=windowSize)
+                pause(seconds=2)
+                pygame.quit()
+                sys.exit()
+        pygame.display.update()
+
 if __name__ == "__main__":
-    #titleScreen()
-    gameOverScreen(300) 
+    titleScreen()
+    #gameOverScreen(4000) 
