@@ -1,4 +1,4 @@
-import pygame, sys, time, datetime
+import pygame, sys, time, datetime, os, pickle
 from Constants import Button, colours, Image, UserInput, Message
 from GameItems import *
 
@@ -61,45 +61,14 @@ def checkFileExists(filename):
     except FileNotFoundError:
         return False
 
-def loadGame(): #Transition from continue game -> main screen
-    states = []
-    with open("saved_game.txt") as file:
-        for line in file.readlines():
-            line = line.replace("\n", "")
-            states.append(line)
-    
-    cash = int(states[0])
-    
-    shield = True if states[1] == "True" else False
-    mirror = True if states[2] == "True" else False
-    bankAmount = int(states[3])
-    #enteredCoordinates = states[4].replace("[", "").replace("]", "").replace("'", "").split(", ")     does the same as below, both work. 
-    enteredCoordinates = states[4][1:len(states[4])-1].replace("'", "").split(", ")
-    
-    #convert from 1 huge 1D array called items to a 7 by 7 2D array of Strings called gridString
-    items = states[5][:len(states[5])-2].replace("[", "").replace("]", "").replace(" ", "").replace("'", "").split(",")
-    gridString = []
-    currentRow = -1
-    for i in range(49):
-        if i % 7 == 0: #every 7 elements, create a new row
-            gridString.append([])
-            currentRow += 1
-        gridString[currentRow].append(items[i]) #in the current row, add the current element
-
-    grid = []
-    itemDict = {
-        "Present": Present(), "ChooseNextSquare": ChooseNextSquare(), "LostAtSea": LostAtSea(),
-        "SwapScore": SwapScore(), "Rob": Rob(), "Mirror": Mirror(), "DoubleScore": DoubleScore(),
-        "Shield": Shield(), "SinkShip": SinkShip(), "Backstab": Backstab(), "SneakPeek": SneakPeak(),
-        "Bank": Bank(), "$200": Cash(200), "$1000": Cash(1000), "$3000": Cash(3000), "$5000": Cash(5000)
-    }
-    
-    #turn the grid into a grid of game item objects instead of grid of strings
-    for rowNum, row in enumerate(gridString):
-        grid.append([])
-        for element in row:
-            grid[rowNum].append(itemDict[element])
-            
+def loadGame(): #Transition from continue game -> main screen    
+    with open("savedGame.pickle", "rb") as f:
+        grid = pickle.load(f)
+        enteredCoordinates = pickle.load(f)
+        cash = pickle.load(f)
+        bankAmount = pickle.load(f)
+        shield = pickle.load(f)
+        mirror = pickle.load(f)
     mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, False)
 
 def titleScreen():
@@ -122,7 +91,7 @@ def titleScreen():
     titleScreen = screen.copy()
     
     while waitingForUser:
-        clock.tick(5)
+        clock.tick(10)
         for event in pygame.event.get():
             mousePosition = pygame.mouse.get_pos()
             
@@ -172,16 +141,13 @@ def titleScreen():
         pygame.display.update()
 
 def saveGame(grid, enteredCoordinates, cash, bankAmount, shield, mirror):
-    with open("saved_game.txt", "w") as file:
-        file.write(str(cash) + "\n")
-        file.write(str(shield) + "\n")
-        file.write(str(mirror) + "\n")
-        file.write(str(bankAmount) + "\n")
-        file.write(str(enteredCoordinates) + "\n")
-
-        temp = [map(lambda item: item.itemName, row) for row in grid]
-        s = str(list(map(list, temp)))
-        file.write(s)
+    with open("savedGame.pickle", "wb") as f:
+        pickle.dump(grid, f)
+        pickle.dump(enteredCoordinates, f)
+        pickle.dump(cash, f)
+        pickle.dump(bankAmount, f)
+        pickle.dump(shield, f)
+        pickle.dump(mirror, f)
 
 #Converts from something like 4, 2 to D3
 def intCoordinateToStrCoordinate(rowCoordinate, colCoordinate):
@@ -461,15 +427,21 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, newGa
     gameOverScreen(cash+bankAmount)
     
 def gameOverScreen(score):
-
+    today = datetime.date.today()
+    formattedDate = today.strftime("%d-%m-%y")
+    
     #a+ mode - append AND read file
-    with open("recent_scores.txt", "a+") as file:
+    with open("recent_scores.txt", "a+") as f:
         #TODO: read in the last 5 lines
-        
-        today = datetime.date.today()
-        formattedDate = today.strftime("%d/%m/%y")
-        file.write(formattedDate + "\t" + str(score) + "\n")
+        f.write(formattedDate + "\t" + str(score) + "\n")
 
+    if os.path.exists("saved_game.txt"): #will not exist if first time playing
+        #os.remove("saved_game.txt")
+        pass
+    if os.path.exists("currentGame.txt"): #this one should definitely exist, but just in case the user deleted it manually
+        #os.rename("currentGame.txt", "archive_" + formattedDate + ".txt")
+        pass
+    
 if __name__ == "__main__":
     titleScreen()
     #gameOverScreen(6000) 
