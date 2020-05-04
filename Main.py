@@ -122,6 +122,7 @@ def titleScreen():
     titleScreen = screen.copy()
     
     while waitingForUser:
+        clock.tick(5)
         for event in pygame.event.get():
             mousePosition = pygame.mouse.get_pos()
             
@@ -328,15 +329,19 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, newGa
     saveGameButton = Button(colours["green"], 20, 20, text="Save Game", fontSize=24)
     saveGameButton.draw(screen)
     
+    undoButton = Button(colours["green"], 20, 60, text="Undo Square", fontSize=24)
+    undoButton.draw(screen)
+    
     #TODO: Display log button
     #If clicked, showLog()
     # ------------------------------------------------------------
     
     shieldButton, mirrorButton = updateUI(cash, bankAmount, shield, mirror)
-    
-    #mainScreen = screen.copy()
+    oldCash, oldBankAmount, oldShield, oldMirror = cash, bankAmount, shield, mirror
+    oldMainScreen = screen.copy()
     saved = False #initially, the game is unsaved
     clickable = False #initially, the user may not enter a square
+    undoAllowed = False
     while len(enteredCoordinates) != 49:
         clock.tick(30)
 
@@ -388,6 +393,19 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, newGa
                     screen.blit(screenBeforeSaving, (0, 0))
                     saved = True
                 
+                if len(enteredCoordinates) != 0 and undoAllowed and undoButton.isMouseHover(mousePosition):
+                    screen.blit(oldMainScreen, (0, 0))
+                    shieldButton, mirrorButton = updateUI(oldCash, oldBankAmount, oldShield, oldMirror)
+                    cash, bankAmount, shield, mirror = oldCash, oldBankAmount, oldShield, oldMirror
+                    previousSquare = enteredCoordinates.pop()
+                    
+                    screenBeforeUndoMessage = screen.copy()
+                    undoMessage = Message("{} was reverted!".format(previousSquare), 24)
+                    undoMessage.blit(screen, ("horizontalCentre", 200), windowSize=windowSize)   
+                    pause(seconds=2)
+                    screen.blit(screenBeforeUndoMessage, (0, 0))     
+                    undoAllowed = False
+                
                 #this entire if block is for entering coordinates onto the grid
                 if clickable:
                     #TODO: Game logic - don't hard code
@@ -404,7 +422,11 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, newGa
                         row = int( (mousePosition[0] - xLeft) // ((xRight - xLeft)/7) ) #calculate the row number from 0 - 6
                         col = int( (mousePosition[1] - yTop) // ((yBottom - yTop)/7) ) #calculate the col number from 0 - 6
                         
-                        if intCoordinateToStrCoordinate(row, col) not in enteredCoordinates:                            
+                        if intCoordinateToStrCoordinate(row, col) not in enteredCoordinates:    
+                            undoAllowed = True  
+                            oldMainScreen = screen.copy()
+                            oldCash, oldBankAmount, oldShield, oldMirror = cash, bankAmount, shield, mirror
+                                                  
                             #topLeft corner of the square has the least x and y value
                             top = int(yTop + (col * squareSize))
                             left = int(xLeft + (row * squareSize))
@@ -440,13 +462,14 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, newGa
     
 def gameOverScreen(score):
 
+    #a+ mode - append AND read file
     with open("recent_scores.txt", "a+") as file:
         #TODO: read in the last 5 lines
         
         today = datetime.date.today()
         formattedDate = today.strftime("%d/%m/%y")
         file.write(formattedDate + "\t" + str(score) + "\n")
-        
+
 if __name__ == "__main__":
     titleScreen()
     #gameOverScreen(6000) 
