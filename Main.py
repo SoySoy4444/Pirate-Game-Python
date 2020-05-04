@@ -1,4 +1,4 @@
-import pygame, sys, time, datetime, os, pickle, bisect
+import pygame, sys, time, datetime, os, pickle, bisect, random
 from Constants import Button, colours, Image, UserInput, Message
 from GameItems import *
 
@@ -91,7 +91,7 @@ def titleScreen():
     titleScreen = screen.copy()
     
     while waitingForUser:
-        clock.tick(10)
+        clock.tick(20)
         for event in pygame.event.get():
             mousePosition = pygame.mouse.get_pos()
             
@@ -107,6 +107,9 @@ def titleScreen():
                 if newGameButton.isMouseHover(mousePosition):
                     newGameButton.color = colours["blue"]
                     print("Clicked new game button")
+                    mode = chooseMode()
+                    print(mode)
+                    setupScreen(mode)
                     
                 if continueGameButton.isMouseHover(mousePosition):                    
                     if checkFileExists("savedGame.pickle"):
@@ -140,6 +143,232 @@ def titleScreen():
                     newGameButton.color = colours["red"]
         pygame.display.update()
 
+def chooseMode():
+    screen.fill(colours["white"])
+    
+    chooseModeMessage = Message("Choose your setup mode", 24)
+    chooseModeMessage.blit(screen, ("horizontalCentre", 100), windowSize=windowSize)
+    
+    customButton = Button(colours["green"], "horizontalCentre", 300, text="Custom Setup", fontSize=24, windowSize=windowSize)
+    customButton.draw(screen)
+    
+    semiCustomButton = Button(colours["green"], "horizontalCentre", 400, text="Semi-custom Setup", fontSize=24, windowSize=windowSize)
+    semiCustomButton.draw(screen)
+    
+    randomButton = Button(colours["green"], "horizontalCentre", 500, text="Random Setup", fontSize=24, windowSize=windowSize)
+    randomButton.draw(screen)
+    
+    waitingForMode = True
+    while waitingForMode:
+        clock.tick(10)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mousePosition = pygame.mouse.get_pos()
+                if customButton.isMouseHover(mousePosition):
+                    waitingForMode = False
+                    mode = "C"
+                if semiCustomButton.isMouseHover(mousePosition):
+                    waitingForMode = False
+                    mode = "S"
+                if randomButton.isMouseHover(mousePosition):
+                    waitingForMode = False
+                    mode = "R"
+        pygame.display.update()
+    return mode
+
+def customItems(grid, itemDict, xLeft, xRight, yTop, yBottom, squareSize, fill, inset):
+    for key in itemDict.keys(): #for each item,
+        currentItem = itemDict[key] #set currentItem to the item OBJECT
+        filename = "Images/GameItems/" + currentItem.itemName + ".png" #find its filename,
+        currentItemImage = Image(filename, size=(int(squareSize * fill), int(squareSize * fill)))
+        currentItemImage.blit(screen, pos=(100, 100))
+        waitingForItemSetup = True
+
+        while waitingForItemSetup:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    mousePosition = pygame.mouse.get_pos()
+                    
+                    if mousePosition[0] > xLeft and mousePosition[0] < xRight and mousePosition[1] > yTop and mousePosition[1] < yBottom:
+                        row = int( (mousePosition[0] - xLeft) // ((xRight - xLeft)/7) ) #calculate the row number from 0 - 6
+                        col = int( (mousePosition[1] - yTop) // ((yBottom - yTop)/7) ) #calculate the col number from 0 - 6
+                        
+                        if grid[row][col] == "":                                
+                            currentItemImage.blit(screen, pos=(row * squareSize + (inset * xLeft), col * squareSize + (inset * yTop)))
+                            grid[row][col] = itemDict[key]
+                            
+                            itemArea = pygame.Rect((100, 100), (currentItemImage.width, currentItemImage.height))
+                            screen.fill(colours["sea"], rect=itemArea)
+                            waitingForItemSetup = False
+                            
+                        else: #This square was already set.
+                            #Remind the user to click on an empty square
+                            currentScreen = screen.copy()
+                            warningMessage = Message("This square is already set up", 24, textColour=colours["black"], backgroundColour=colours["red"])
+                            warningMessage.blit(screen, ("horizontalCentre", "verticalCentre"), windowSize=windowSize)
+                            pause(seconds=1)
+                            screen.blit(currentScreen, (0, 0))
+                    else:
+                        #Remind the user to click inside the grid only
+                        currentScreen = screen.copy()
+                        warningMessage = Message("Please click inside the grid", 24, textColour=colours["black"], backgroundColour=colours["red"])
+                        warningMessage.blit(screen, ("horizontalCentre", "verticalCentre"), windowSize=windowSize)
+                        pause(seconds=1)
+                        screen.blit(currentScreen, (0, 0))
+            pygame.display.update()
+    return grid
+
+def customCash(grid, cashDict, xLeft, xRight, yTop, yBottom, squareSize, fill, inset):
+    for key in cashDict.keys(): #for each type of cash,
+        for _ in range(cashDict[key].numCash): #we need 24 $200, 10 $1000, etc
+            
+            currentItem = cashDict[key] #set currentItem to the item OBJECT
+            filename = "Images/GameItems/" + currentItem.itemName + ".png" #find its filename,
+            currentItemImage = Image(filename, size=(int(squareSize * fill), int(squareSize * fill)))
+            itemArea = pygame.Rect((100, 100), (currentItemImage.width, currentItemImage.height))
+            screen.fill(colours["sea"], rect=itemArea)
+            currentItemImage.blit(screen, pos=(100, 100))
+            waitingForCashSetup = True
+            while waitingForCashSetup:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        sys.exit()
+                    
+                    if event.type == pygame.MOUSEBUTTONDOWN:
+                        mousePosition = pygame.mouse.get_pos()
+                        
+                        if mousePosition[0] > xLeft and mousePosition[0] < xRight and mousePosition[1] > yTop and mousePosition[1] < yBottom:
+                            row = int( (mousePosition[0] - xLeft) // ((xRight - xLeft)/7) ) #calculate the row number from 0 - 6
+                            col = int( (mousePosition[1] - yTop) // ((yBottom - yTop)/7) ) #calculate the col number from 0 - 6
+                            
+                            if grid[row][col] == "":    
+                                currentItemImage.blit(screen, pos=(row * squareSize + (inset * xLeft), col * squareSize + (inset * yTop)))
+                                grid[row][col] = cashDict[key]
+                                
+                                itemArea = pygame.Rect((100, 100), (currentItemImage.width, currentItemImage.height))
+                                screen.fill(colours["sea"], rect=itemArea)
+                                waitingForCashSetup = False
+                                
+                            else: #This square was already set.
+                                #Remind the user to click on an empty square
+                                currentScreen = screen.copy()
+                                warningMessage = Message("This square is already set up", 24, textColour=colours["black"], backgroundColour=colours["red"])
+                                warningMessage.blit(screen, ("horizontalCentre", "verticalCentre"), windowSize=windowSize)
+                                pause(seconds=1)
+                                screen.blit(currentScreen, (0, 0))
+                        else:
+                            #Remind the user to click inside the grid only
+                            currentScreen = screen.copy()
+                            warningMessage = Message("Please click inside the grid", 24, textColour=colours["black"], backgroundColour=colours["red"])
+                            warningMessage.blit(screen, ("horizontalCentre", "verticalCentre"), windowSize=windowSize)
+                            pause(seconds=1)
+                            screen.blit(currentScreen, (0, 0))
+                pygame.display.update()
+    return grid
+
+def randomItems(grid, itemDict, xLeft, yTop, squareSize, fill, inset):
+    for key in itemDict.keys(): #for each item,
+        currentItem = itemDict[key] #set currentItem to the item OBJECT
+        filename = "Images/GameItems/" + currentItem.itemName + ".png" #find its filename,
+        currentItemImage = Image(filename, size=(int(squareSize * fill), int(squareSize * fill)))
+
+        validCoordinateFound = False
+        while not validCoordinateFound:
+            row = random.randint(0, 6)
+            col = random.randint(0, 6)
+                        
+            if grid[row][col] == "":                                
+                currentItemImage.blit(screen, pos=(row * squareSize + (inset * xLeft), col * squareSize + (inset * yTop)))
+                grid[row][col] = itemDict[key]
+                
+                validCoordinateFound = True
+    return grid
+
+def randomCash(grid, cashDict, xLeft, yTop, squareSize, fill, inset):
+    del cashDict["$200"]
+    for key in cashDict.keys(): #for each item,
+        for _ in range(cashDict[key].numCash):
+            currentItem = cashDict[key] #set currentItem to the item OBJECT
+            filename = "Images/GameItems/" + currentItem.itemName + ".png" #find its filename,
+            currentItemImage = Image(filename, size=(int(squareSize * fill), int(squareSize * fill)))
+    
+            validCoordinateFound = False
+            while not validCoordinateFound:
+                row = random.randint(0, 6)
+                col = random.randint(0, 6)
+
+                if grid[row][col] == "":
+                    currentItemImage.blit(screen, pos=((row * squareSize + (inset * xLeft)), (col * squareSize + (inset * yTop))))
+                    grid[row][col] = cashDict[key]
+                    
+                    validCoordinateFound = True
+    
+    for rowNum, row in enumerate(grid):
+        for colNum, element in enumerate(row):
+            if element == "":
+                currentItem = Cash(200)
+                filename = "Images/GameItems/" + currentItem.itemName + ".png" #find its filename,
+                currentItemImage = Image(filename, size=(int(squareSize * fill), int(squareSize * fill)))
+
+                currentItemImage.blit(screen, pos=(rowNum * squareSize + (inset * xLeft), colNum * squareSize + (inset * yTop)))
+                element = cashDict[key]                
+    return grid
+
+def setupScreen(mode):
+    screen.fill(colours["sea"])
+    gridImage = Image("Images/grid.png", size=(460, 460))
+    gridImage.blit(screen, pos = (windowSize[0]//2 - gridImage.width//2, windowSize[1]//2 - gridImage.height//2))
+    
+    xLeft, xRight = 228, 628
+    yTop, yBottom = 129, 529
+    squareSize = gridImage.width / 8 #the grid has 8 squares, so / 8 will produce the size of each grid.    
+    fill = 0.85 #the image will fill 85% of the square
+    inset = 1 + ((squareSize * (1-fill)/2))/2/100 #for a square size of 57 and fill of 85%, is 2.15625%%.
+    
+    grid = [
+        ["", "", "", "", "", "", ""], 
+        ["", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", ""],
+    ]
+    
+    itemDict = {
+         "Present": Present(), "ChooseNextSquare": ChooseNextSquare(), "LostAtSea": LostAtSea(),
+         "SwapScore": SwapScore(), "Rob": Rob(), "Mirror": Mirror(), "DoubleScore": DoubleScore(),
+         "Shield": Shield(), "SinkShip": SinkShip(), "Backstab": Backstab(), "SneakPeek": SneakPeak(),
+         "Bank": Bank()
+    }
+    
+    cashDict = {
+        "$200": Cash(200), "$1000": Cash(1000), "$3000": Cash(3000), "$5000": Cash(5000)
+    }
+    
+    if mode == "C":
+        grid = customItems(grid, itemDict, xLeft, xRight, yTop, yBottom, squareSize, fill, inset)
+        print(grid)
+        grid = customCash(grid, cashDict, xLeft, xRight, yTop, yBottom, squareSize, fill, inset)
+        print(grid)
+    elif mode == "S":
+        grid = customItems(grid, itemDict, xLeft, xRight, yTop, yBottom, squareSize, fill, inset)
+        grid = randomCash(grid, cashDict, xLeft, yTop, squareSize, fill, inset)
+    else: #mode == "R"
+        grid = randomItems(grid, itemDict, xLeft, yTop, squareSize, fill, inset)
+        grid = randomCash(grid, cashDict, xLeft, yTop, squareSize, fill, inset)
+    
+    mainScreen(grid, [], 0, 0, False, False, True, gridImage=gridImage)
+
 def saveGame(grid, enteredCoordinates, cash, bankAmount, shield, mirror):
     with open("savedGame.pickle", "wb") as f:
         pickle.dump(grid, f)
@@ -160,7 +389,7 @@ def makeChanges(item, cash, bankAmount, shield, mirror):
     
     currentScreen = screen.copy()
     itemMessage = Message(item.itemDescription, 24)
-    itemMessage.blit(screen, (windowSize[0]//2 - itemMessage.width//2, windowSize[1]//2 - itemMessage.height//2))
+    itemMessage.blit(screen, ("horizontalCentre", "verticalCentre"), windowSize=windowSize)
     pause(seconds=1)
     screen.blit(currentScreen, (0, 0))
     
@@ -203,7 +432,6 @@ def makeChanges(item, cash, bankAmount, shield, mirror):
     return cash, bankAmount, shield, mirror
 
 def updateUI(cash, bankAmount, shield, mirror):
-    #TODO: Not working ↓
     region = pygame.Rect((500, 20), (300, 30)) #the square to cover with blue
     screen.fill(colours["sea"], rect=region)
     
@@ -266,7 +494,12 @@ def confirm(message):
     
 
 #Triggered either by titleScreen -> loadGame or setUpScreen()
-def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, newGame):        
+def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, newGame, gridImage=None):    
+    
+    xLeft, xRight = 228, 628
+    yTop, yBottom = 129, 529
+    squareSize = gridImage.width / 8 #the grid has 8 squares, so / 8 will produce the size of each grid.   
+     
     if not newGame: #if continuing game, we need to setup
         screen.fill(colours["sea"]) #background blue colour
         
