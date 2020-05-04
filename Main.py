@@ -1,4 +1,4 @@
-import pygame, sys, time, datetime, os, pickle
+import pygame, sys, time, datetime, os, pickle, bisect
 from Constants import Button, colours, Image, UserInput, Message
 from GameItems import *
 
@@ -426,14 +426,41 @@ def mainScreen(grid, enteredCoordinates, cash, bankAmount, shield, mirror, newGa
     
     gameOverScreen(cash+bankAmount)
     
-def gameOverScreen(score):
+def gameOverScreen(todaysScore):
     today = datetime.date.today()
     formattedDate = today.strftime("%d-%m-%y")
+
+    if os.path.exists("highScores.pickle"):
+        with open("highScores.pickle", "rb") as f:
+            highScoresDict = pickle.load(f)
+            oldHighScores = sorted(highScoresDict.keys()) #before adding today's entry, take note of the previous high scores
+            
+            highScoresDict[todaysScore] = formattedDate #add today's score to the high scores dictionary
     
-    #a+ mode - append AND read file
-    with open("recent_scores.txt", "a+") as f:
-        #TODO: read in the last 5 lines
-        f.write(formattedDate + "\t" + str(score) + "\n")
+            newHighScores = oldHighScores
+            bisect.insort(newHighScores, todaysScore) #add today's score in the list of new high scores
+            newHighScores = sorted(oldHighScores, reverse=True) #with today's score included, sort the list again.
+            
+            if len(newHighScores) <= 5: #if there are less than 5 high scores total, display all scores
+                newHighScoresDict = {score:highScoresDict[score] for score in newHighScores}
+            else: #otherwise, only display the top 5.
+                newHighScoresDict = {score:highScoresDict[score] for score in newHighScores[:5]}
+                
+                if oldHighScores[len(oldHighScores)-1] > todaysScore:
+                    print("Your score does not belong in your high scores list :(")
+
+            if newHighScores[0] == todaysScore:
+                print("You have a new high score!")
+    else:
+        print("This is your first recorded high score!")
+        newHighScoresDict = {todaysScore:formattedDate}
+    
+    for score, date in newHighScoresDict.items():
+        print(score, date)
+    
+    #update the high scores dictionary
+    with open("highScores.pickle", "wb") as f:
+        pickle.dump(newHighScoresDict, f)
 
     if os.path.exists("saved_game.txt"): #will not exist if first time playing
         #os.remove("saved_game.txt")
@@ -443,5 +470,5 @@ def gameOverScreen(score):
         pass
     
 if __name__ == "__main__":
-    titleScreen()
-    #gameOverScreen(6000) 
+    #titleScreen()
+    gameOverScreen(300) 
